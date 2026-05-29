@@ -12,9 +12,11 @@ Detaljer per fase i `PLAN.md §8`. Kryss av straks ferdig. **MVP = 3 instrumente
 - [x] `src/setups/secrets.py` (leser `~/.bedrock/secrets.env`, env-override + `REGNBUE_SECRETS_ENV`)
 - [x] ruff + pytest grønn (`tests/test_smoke.py`: import + env-override-test). `scripts/` ekskl. fra ruff
 
-## Fase 1 — datastore + seed
-- [ ] `store.py` (SQLite)
-- [ ] seed bias-historikk fra `~/bedrock/bedrock.db` (COT/FRED/vær/COMEX, lese-only)
+## Fase 1 — datastore + seed ✅ FERDIG 2026-05-30
+- [x] `store.py` (SQLite): normalisert bias-schema (cot_positions/macro_series/comex/weather/etf + seed_log)
+- [x] `seed.py` engangs lese-only fra `bedrock.db`: Gull/Kaffe COT 856 (2010→), EURUSD 542 (2016→),
+      makro 37k rader, ENSO/DEXBZUS for kaffe. NB: vær + COMEX grunne i bedrock (fetch-lag fyller i fase 2)
+- [x] `test_store.py` data-integritet + idempotens (6 tester grønne)
 
 ## Fase 2 — fetch + nivå-feed
 - [ ] `ctrader_prices.py` — read-only OHLC fra Skilling (NIVÅ-feed), test token live
