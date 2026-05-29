@@ -33,6 +33,20 @@ CREATE TABLE IF NOT EXISTS cot_positions (
     PRIMARY KEY (market, report_date)
 );
 
+-- NIVÅ-feed: OHLC fra Skillings egen prisfeed (cTrader). Dette er ENESTE kilde for
+-- entry/SL/TP-koordinater (K3/§5b). symbol = Skilling-ticker (GOLD, EURUSD, COFFEE ...).
+CREATE TABLE IF NOT EXISTS prices (
+    symbol  TEXT NOT NULL,
+    tf      TEXT NOT NULL,     -- D1 i MVP
+    ts      TEXT NOT NULL,     -- ISO UTC (bar-åpning)
+    open    REAL NOT NULL,
+    high    REAL NOT NULL,
+    low     REAL NOT NULL,
+    close   REAL NOT NULL,
+    volume  REAL,
+    PRIMARY KEY (symbol, tf, ts)
+);
+
 CREATE TABLE IF NOT EXISTS macro_series (
     series_id  TEXT NOT NULL,     -- FRED-id (DGS10, DFII10, DTWEXBGS, GVZCLS, ...)
     date       TEXT NOT NULL,

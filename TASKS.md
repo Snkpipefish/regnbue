@@ -18,9 +18,11 @@ Detaljer per fase i `PLAN.md §8`. Kryss av straks ferdig. **MVP = 3 instrumente
       makro 37k rader, ENSO/DEXBZUS for kaffe. NB: vær + COMEX grunne i bedrock (fetch-lag fyller i fase 2)
 - [x] `test_store.py` data-integritet + idempotens (6 tester grønne)
 
-## Fase 2 — fetch + nivå-feed
-- [ ] `ctrader_prices.py` — read-only OHLC fra Skilling (NIVÅ-feed), test token live
-- [ ] `fetch/` lean bias-data via gjenbrukte API-nøkler (kun høyverdi-kilder)
+## Fase 2 — fetch + nivå-feed ✅ FERDIG 2026-05-30
+- [x] `ctrader_prices.py` — read-only OHLC fra Skilling (NIVÅ-feed). Live testet: GOLD/EURUSD/Coffee
+      D1 hentet (2 år), OHLC fornuftig. Tickere: GOLD, EURUSD, **Coffee** (ikke COFFEE)
+- [x] `fetch/fred.py` lean makro-henter (FRED_API_KEY), live testet (DGS10). NB: DXY/GVZ/ENSO-fetchere
+      utsatt til driverne defineres (fase 3) — de er ikke FRED i bedrock
 
 ## Fase 3 — scoring
 - [ ] `score/` egen driver-registry + motor + grade + explain

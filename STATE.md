@@ -3,7 +3,7 @@
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
 **Sist oppdatert:** 2026-05-30
-**Nåværende fase:** **Fase 0–1 ferdig** (stillas + datastore + seed). Kjører videre mot fase 2 sammenhengende.
+**Nåværende fase:** **Fase 0–2 ferdig** (stillas, datastore+seed, nivå-feed+fetch). Kjører videre mot fase 3.
 
 ## K1-resultat (2026-05-30) — løst positivt
 cTrader-spike (`scripts/ctrader_depth_spike.py`, read-only, demo) viste **dyp D1-historikk** på Skilling:
@@ -12,8 +12,9 @@ Gull (GOLD) ~28 år, Olje (OIL WTI) ~20 år, Indeks (SPX500) ~14 år. Token gyld
 Skilling-tickere: `GOLD`(41), `OIL WTI`(99), `OIL BRENT`, `SPX500`(203).
 
 ## Neste konkrete steg
-**Fase 2:** `ctrader_prices.py` — read-only OHLC fra Skilling (NIVÅ-feed), test token live (mønster fra
-`scripts/ctrader_depth_spike.py`). Deretter `fetch/` lean bias-data via gjenbrukte API-nøkler (kun høyverdi).
+**Fase 3:** `score/` — egen driver-registry (@register) + motor + grade + explain-trace, og 3 fingerprint-YAML
+(Gull, EURUSD, Kaffe) i `config/instruments/`. Logiske tester: gitt data → forvent score/grade.
+Her bestemmes hvilke konkrete serier hver driver bruker (avklarer GVZ/DXY/realrente-avledning + ENSO-fetcher).
 
 ### Status (2026-05-30)
 - **Fase 0:** git (branch `main`), `.gitignore`, `pyproject.toml` (src-layout), `secrets.py` (env overstyrer fil),
@@ -22,7 +23,10 @@ Skilling-tickere: `GOLD`(41), `OIL WTI`(99), `OIL BRENT`, `SPX500`(203).
   Seedet `data/regnbue.db`: COT Gull/Kaffe 856 + EURUSD 542, makro 37k, ETF gld 5593, COMEX gold 17, vær 63.
   - **Merk:** bedrock `weather` (siste ~måned) og `comex_inventory` (17 rader) er grunne → fase 2 fetch holder ferskt.
   - Realrente for gull avledes senere som DGS10 − T10YIE (DFII10 finnes ikke i bedrock).
-- `ruff` rent, `pytest` 6 grønne. `data/regnbue.db` er git-ignorert (regenereres via `python -m setups.seed`).
+- **Fase 2:** `ctrader_prices.py` (NIVÅ-feed, read-only D1-OHLC via cTrader, token-refresh innebygd) +
+  `fetch/fred.py` (makro). Skilling-tickere MVP: **GOLD, EURUSD, Coffee**. Hent priser:
+  `python -m setups.ctrader_prices GOLD EURUSD Coffee --years 15`; makro: `python -m setups.fetch.fred`.
+- `ruff` rent, `pytest` 10 grønne + 1 skip (live FRED). `data/regnbue.db` er git-ignorert (regenereres).
 
 ## Hva er gjort
 - Kartlagt #1/#2, skrevet alle plan-/datadokumenter.
