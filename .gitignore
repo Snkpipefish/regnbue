@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# venv
+.venv/
+venv/
+
+# test/lint caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# datastore (seeded/fetched, not committed)
+*.db
+*.sqlite
+*.sqlite3
+data/
+*.parquet
+
+# secrets — NEVER commit (lives in ~/.bedrock/secrets.env)
+secrets.env
+.env
+
+# editor/OS
+.vscode/
+.idea/
+.DS_Store

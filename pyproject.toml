@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "regnbue-setups"
+version = "0.0.0"
+description = "Regnbue — per-instrument setup-generator med base-rate-gate (manuell trading)"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=2.2",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "requests>=2.32",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.5",
+    "pytest>=8.2",
+]
+# cTrader-prisfeed (fase 2) — eget miljø; samme klient som bedrock-spiken.
+ctrader = [
+    "ctrader-open-api",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+# scripts/ er engangs-spiker (f.eks. K1 cTrader-dybdemåling), ikke pakkekode.
+extend-exclude = ["scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
