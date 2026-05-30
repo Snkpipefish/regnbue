@@ -42,7 +42,7 @@ def _mean(xs: list[float]) -> float:
     return sum(xs) / len(xs) if xs else 0.0
 
 
-def validate(panel: Panel, *, similarity: float, min_effective_n: int,
+def validate(panel: Panel, *, band: float, min_effective_n: int,
              min_hit_rate_pct: float, min_expectancy_r: float) -> Validation:
     train, oos = panel.train(), panel.oos()
     base_hit = _mean([1.0 if r.hit else 0.0 for r in oos])
@@ -51,12 +51,10 @@ def validate(panel: Panel, *, similarity: float, min_effective_n: int,
     pred_pairs: list[tuple[float, float]] = []   # (predikert nabo-snitt-R, realisert R)
     gate_rows = []
     for row in oos:
-        neighbors = [t for t in train
-                     if t.direction == row.direction
-                     and gate.distance(t.vector, row.vector) <= similarity]
+        neighbors = gate.neighbors_by_score(train, row.score, row.direction, band)
         if len(neighbors) >= min_effective_n:
             pred_pairs.append((_mean([n.outcome_r for n in neighbors]), row.outcome_r))
-        br = gate.evaluate(train, row.vector, row.direction, similarity=similarity,
+        br = gate.evaluate(train, row.score, row.direction, band=band,
                            min_effective_n=min_effective_n, min_hit_rate_pct=min_hit_rate_pct,
                            min_expectancy_r=min_expectancy_r)
         if br.passes:
@@ -88,7 +86,7 @@ def run(db_path=store.DEFAULT_DB_PATH, fingerprints=None,
             panel = build_panel(conn, fp, horizon=br.get("horizon_days", 30),
                                 oos_start=oos_start)
             out.append(validate(
-                panel, similarity=br.get("similarity", 0.15),
+                panel, band=br.get("band", 0.1),
                 min_effective_n=br.get("min_effective_n", 30),
                 min_hit_rate_pct=br.get("min_hit_rate_pct", 55.0),
                 min_expectancy_r=br.get("min_expectancy_r", 0.3)))

@@ -54,6 +54,14 @@ Endres bare ved bevisst ny beslutning. Format: dato — valg — kort begrunnels
   systemd-user-timer (`setups.timer`, hver 6h, linger på) kjører `update.sh`. Publisert `web/data/setups.json`
   committes (rot-`/data/` ignoreres, ikke `web/data/`). ALLE FASER 0–7 ferdig.
 
+- **2026-05-30 — Base-rate matcher på AGGREGERT SCORE + retning** (score-bånd 0.10), ikke 4D-driver-vektor.
+  Begrunnelse: 4D-nærmeste-nabo ble for glissent (publiserte aldri) og ga småutvalg-artefakter. Score-bånd
+  er kalibrering ("når modellen var så bullish, hva skjedde?") — tolkbar, godt befolket. `price_vs_sma`
+  z-skåres nå (volatilitetsnormalisert) i stedet for fast skala.
+- **2026-05-30 — OOS-FUNN: ingen påvist edge i MVP-driverne.** Robust validering viser ~myntkast-prediksjon;
+  gaten publiserer korrekt 0. Tesen er IKKE bevist ennå. Neste = bedre prediktive drivere (forsknings-
+  /retningsvalg for brukeren), IKKE terskel-/likhet-tuning (ville vært p-hacking på OOS).
+
 ## Uavklart (ikke låst ennå)
 - Panel-ytelse (~55s/instr) — caching/vektorisering ved behov.
-- Skal live-beslutning bruke full historikk som naboer, eller kun train (OOS ekskludert som nå)?
+- Hvilke nye drivere kan gi ekte prediktiv verdi? (krever brukerens retning før mer arbeid)

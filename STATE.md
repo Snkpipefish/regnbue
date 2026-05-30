@@ -11,20 +11,19 @@ Gull (GOLD) ~28 år, Olje (OIL WTI) ~20 år, Indeks (SPX500) ~14 år. Token gyld
 1344 symboler. **→ K3 løst:** regn både nivåer OG base-rate på Skilling-feed (ett koordinatsystem).
 Skilling-tickere: `GOLD`(41), `OIL WTI`(99), `OIL BRENT`, `SPX500`(203).
 
-## OOS-validering (2026-05-30) — `python -m setups.validate`
-Tesen-test på data aldri tunet på (train-naboer → OOS-utfall):
-- **Gull:** prediktiv verdi BEKREFTET — 77 % fortegns-treff OOS (n=31), pred+ +1.05R vs pred- −0.75R.
-- **EURUSD:** svak (57 % fortegns-treff), marginal edge.
-- **Coffee:** kan ikke valideres — 0 OOS-datoer hadde ≥30 train-naboer (~5 års historikk, for tynt).
-- **KRITISK:** gaten publiserte **0 setups** over hele OOS for alle tre. Låste terskler (sim 0.15 + n≥30 +
-  Wilson-nedre 55 % + exp 0.3R) fyrer praktisk talt aldri → tom tavle. Analog-metoden funker (gull),
-  men publiseringsbaren nås ikke. **Krever metodikk-valg (IKKE terskel-fikling på OOS).** Se under.
+## OOS-validering (2026-05-30) — `python -m setups.validate` — ÆRLIG FUNN
+Tesen-test på data aldri tunet på. To likhetsmål prøvd (én gang hver, prinsipielt — ikke OOS-tuning):
+1. **4D-nærmeste-nabo (sim 0.15):** gull «77 % fortegns-treff» — MEN kun n=31 datoer hadde ≥30 naboer.
+   Småutvalg-artefakt fra glisne klynger (curse of dimensionality).
+2. **Score-bånd + retning (band 0.10) [nåværende, korrekt metode]:** naboer for ~alle datoer (n≈590).
+   - Gull: fortegns-treff **55 %** (nær myntkast); pred+ +0.62R vs pred− +0.33R.
+   - EURUSD: **43 %** (verre enn tilfeldig). Coffee: 54 %, invertert.
+   - **Gaten publiserer 0 OOS** — treffrate ~49–55 %, Wilson-nedre når aldri 55 %.
 
-## Åpent metodikk-valg (venter på brukeren)
-Gaten er for streng til å publisere. Prinsipielle veier (terskel-senking forbudt = tuning på OOS):
-1. Redusér dimensjonalitet i likhetsmålet (4 drivere → grovere tilstand / score-bin) så naboer finnes.
-2. Bruk full historikk (ikke kun train) som nabo-pool live + OOS kun til validering.
-3. Aksepter sjeldnere/bredere publisering bevisst (egen lavere-konfidens-klasse i UI).
+**Konklusjon: ingen påvist OOS-edge i nåværende drivere.** Gaten som publiserer 0 er KORREKT —
+systemet nekter å lure oss (audit K2/V3/V4 virker etter hensikten). Den tilsynelatende gull-edgen
+var støy. **IKKE pirk mer på terskler/likhet (= p-hacking på OOS).** Ekte vei videre = bedre/flere
+*prediktive* drivere, så valideres på nytt. Det er et forsknings-/retningsvalg for brukeren.
 
 ## Neste konkrete steg (etter-MVP / drift)
 - Observer at systemd-timeren publiserer hver 6. time (`journalctl --user -u setups.service`).

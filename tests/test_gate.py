@@ -78,15 +78,14 @@ def test_panel_excludes_future_and_is_as_of_safe(tmp_path):
 
 
 # ---------- gate-logikk ----------
-def _rows(n, hit, r_value, direction="LONG", vec=None):
-    vec = vec or {"d": 0.5}
-    return [PanelRow(date=f"2020-01-{i+1:02d}", vector=dict(vec), direction=direction,
-                     outcome_r=r_value, hit=hit) for i in range(n)]
+def _rows(n, hit, r_value, direction="LONG", score=0.5):
+    return [PanelRow(date=f"2020-01-{i+1:02d}", vector={"d": score}, direction=direction,
+                     outcome_r=r_value, hit=hit, score=score) for i in range(n)]
 
 
 def test_gate_rejects_too_few_neighbors():
     rows = _rows(10, hit=True, r_value=2.0)
-    br = gate.evaluate(rows, {"d": 0.5}, "LONG", min_effective_n=30)
+    br = gate.evaluate(rows, 0.5, "LONG", min_effective_n=30)
     assert not br.passes and "for få analoger" in br.reason
     assert br.n == 10
 
@@ -94,7 +93,7 @@ def test_gate_rejects_too_few_neighbors():
 def test_gate_accepts_strong_evidence():
     # 40 analoger, 85% hit → Wilson nedre grense godt over 55%, klart positiv expectancy.
     rows = (_rows(34, hit=True, r_value=2.0) + _rows(6, hit=False, r_value=-1.0))
-    br = gate.evaluate(rows, {"d": 0.5}, "LONG",
+    br = gate.evaluate(rows, 0.5, "LONG",
                        min_effective_n=30, min_hit_rate_pct=55, min_expectancy_r=0.3)
     assert br.passes and br.n == 40
     assert br.hit_rate == pytest.approx(0.85, abs=1e-6)
@@ -104,17 +103,17 @@ def test_gate_accepts_strong_evidence():
 
 def test_gate_rejects_low_hit_rate():
     rows = (_rows(18, hit=True, r_value=1.0) + _rows(22, hit=False, r_value=-1.0))
-    br = gate.evaluate(rows, {"d": 0.5}, "LONG", min_effective_n=30, min_hit_rate_pct=55)
+    br = gate.evaluate(rows, 0.5, "LONG", min_effective_n=30, min_hit_rate_pct=55)
     assert not br.passes and "hit-rate" in br.reason
 
 
-def test_gate_filters_by_similarity_and_direction():
-    near = _rows(35, hit=True, r_value=2.0, vec={"d": 0.50})
-    far = _rows(35, hit=True, r_value=2.0, vec={"d": 0.95})       # utenfor terskel
+def test_gate_filters_by_score_band_and_direction():
+    near = _rows(35, hit=True, r_value=2.0, score=0.50)
+    far = _rows(35, hit=True, r_value=2.0, score=0.95)       # utenfor båndet
     wrong_dir = _rows(35, hit=True, r_value=2.0, direction="SHORT")
     rows = near + far + wrong_dir
-    br = gate.evaluate(rows, {"d": 0.50}, "LONG", similarity=0.1, min_effective_n=30)
-    assert br.n == 35  # kun nære LONG-naboer teller
+    br = gate.evaluate(rows, 0.50, "LONG", band=0.1, min_effective_n=30)
+    assert br.n == 35  # kun LONG-naboer i score-båndet teller
 
 
 def test_wilson_bounds():

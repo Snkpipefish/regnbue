@@ -32,6 +32,7 @@ class PanelRow:
     direction: str        # LONG | SHORT (implisert av score-fortegn)
     outcome_r: float      # realisert resultat i R (TP=+rr, SL=-1, ellers delvis)
     hit: bool             # nådde TP før SL innen horisont
+    score: float = 0.0    # aggregert fingerprint-score (base-rate matcher på denne)
     oos: bool = False     # i out-of-sample-holdout
 
 
@@ -129,6 +130,7 @@ def build_panel(conn: sqlite3.Connection, fingerprint: dict, *,
                                            horizon, rr)
         panel.rows.append(PanelRow(
             date=d, vector=vector, direction=direction, outcome_r=outcome_r,
-            hit=(label == "TP"), oos=(oos_start is not None and d >= oos_start),
+            hit=(label == "TP"), score=res.score,
+            oos=(oos_start is not None and d >= oos_start),
         ))
     return panel

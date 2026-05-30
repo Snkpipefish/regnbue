@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated": "2026-05-30T08:22:45Z",
+  "generated": "2026-05-30T08:58:07Z",
   "as_of": "2026-05-28",
   "signals": [
     {
@@ -15,21 +15,21 @@
       "tp": 260,
       "rr": 1.249,
       "atr": 8.100714,
-      "reject_reason": "R:R 1.25 < 1.5; base-rate: for få analoger (n=1 < 30); hit-rate nedre CI 0% < 55%; expectancy -1.00R < 0.30R; expectancy CI inkluderer ≤0 (-1.00R)",
+      "reject_reason": "R:R 1.25 < 1.5; base-rate: hit-rate nedre CI 13% < 55%; expectancy -0.42R < 0.30R; expectancy CI inkluderer ≤0 (-0.65R)",
       "base_rate": {
-        "n": 1,
-        "hit_rate": 0.0,
+        "n": 99,
+        "hit_rate": 0.1919,
         "hit_rate_ci": [
-          0.0,
-          0.7935
+          0.1264,
+          0.2804
         ],
-        "expectancy_r": -1.0,
+        "expectancy_r": -0.4204,
         "expectancy_ci": [
-          -1.0,
-          -1.0
+          -0.6541,
+          -0.1868
         ],
         "passes": false,
-        "reason": "for få analoger (n=1 < 30); hit-rate nedre CI 0% < 55%; expectancy -1.00R < 0.30R; expectancy CI inkluderer ≤0 (-1.00R)"
+        "reason": "hit-rate nedre CI 13% < 55%; expectancy -0.42R < 0.30R; expectancy CI inkluderer ≤0 (-0.65R)"
       },
       "drivers": [
         {
@@ -70,21 +70,21 @@
       "tp": 4500.6,
       "rr": 0.995,
       "atr": 103.315714,
-      "reject_reason": "ingen grade (for svakt signal); R:R 0.99 < 1.5; base-rate: for få analoger (n=2 < 30); hit-rate nedre CI 0% < 55%; expectancy -1.00R < 0.30R; expectancy CI inkluderer ≤0 (-1.00R)",
+      "reject_reason": "ingen grade (for svakt signal); R:R 0.99 < 1.5; base-rate: hit-rate nedre CI 21% < 55%; expectancy -0.25R < 0.30R; expectancy CI inkluderer ≤0 (-0.37R)",
       "base_rate": {
-        "n": 2,
-        "hit_rate": 0.0,
+        "n": 439,
+        "hit_rate": 0.2483,
         "hit_rate_ci": [
-          0.0,
-          0.6576
+          0.2102,
+          0.2908
         ],
-        "expectancy_r": -1.0,
+        "expectancy_r": -0.2516,
         "expectancy_ci": [
-          -1.0,
-          -1.0
+          -0.373,
+          -0.1302
         ],
         "passes": false,
-        "reason": "for få analoger (n=2 < 30); hit-rate nedre CI 0% < 55%; expectancy -1.00R < 0.30R; expectancy CI inkluderer ≤0 (-1.00R)"
+        "reason": "hit-rate nedre CI 21% < 55%; expectancy -0.25R < 0.30R; expectancy CI inkluderer ≤0 (-0.37R)"
       },
       "drivers": [
         {
@@ -125,21 +125,21 @@
       "tp": 1.16174,
       "rr": 1.757,
       "atr": 0.005386,
-      "reject_reason": "ingen grade (for svakt signal); base-rate: ingen historiske analoger innenfor likhetsterskel",
+      "reject_reason": "ingen grade (for svakt signal); base-rate: hit-rate nedre CI 27% < 55%; expectancy -0.01R < 0.30R; expectancy CI inkluderer ≤0 (-0.16R)",
       "base_rate": {
-        "n": 0,
-        "hit_rate": 0.0,
+        "n": 304,
+        "hit_rate": 0.3191,
         "hit_rate_ci": [
-          0.0,
-          0.0
+          0.2692,
+          0.3735
         ],
-        "expectancy_r": 0.0,
+        "expectancy_r": -0.0064,
         "expectancy_ci": [
-          0.0,
-          0.0
+          -0.1632,
+          0.1504
         ],
         "passes": false,
-        "reason": "ingen historiske analoger innenfor likhetsterskel"
+        "reason": "hit-rate nedre CI 27% < 55%; expectancy -0.01R < 0.30R; expectancy CI inkluderer ≤0 (-0.16R)"
       },
       "drivers": [
         {

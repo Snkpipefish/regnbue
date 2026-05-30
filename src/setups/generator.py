@@ -107,11 +107,10 @@ def build_setup(conn: sqlite3.Connection, fingerprint: dict, as_of: str, *,
     if panel is None:
         panel = build_panel(conn, fingerprint, sl_atr=sl_atr, tp_atr=tp_atr,
                             horizon=horizon, oos_start=br_cfg.get("oos_start"))
-    current_vector = {d.name: d.score for d in res.drivers if d.ok}
     base_rate = gate.evaluate(
         panel.train() if hasattr(panel, "train") else panel,
-        current_vector, direction,
-        similarity=br_cfg.get("similarity", 0.15),
+        res.score, direction,
+        band=br_cfg.get("band", 0.1),
         min_effective_n=br_cfg.get("min_effective_n", 30),
         min_hit_rate_pct=br_cfg.get("min_hit_rate_pct", 55.0),
         min_expectancy_r=br_cfg.get("min_expectancy_r", 0.3),

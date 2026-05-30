@@ -1,8 +1,12 @@
 """Base-rate-gatekeeper (skjerpet etter audit K2/V3).
 
-En setup slippes gjennom kun hvis HISTORISKE analoger støtter den:
-  * naboer = paneldatoer med samme retning og **likhetsavstand <= terskel**
-    (ikke bare K nærmeste — vi krever ekte likhet),
+Analoger matches på **aggregert score + retning** (kalibrering: "når modellen historisk
+var ~så bullish, hva skjedde de neste N dagene?"). Dette er dimensjonsreduksjon gjort
+riktig — vi matcher på det vi faktisk vedder på, ikke hele driver-vektoren (4D-nærmeste-nabo
+ble for glissent og publiserte aldri; OOS-validering 2026-05-30).
+
+En setup slippes gjennom kun hvis:
+  * naboer = train-datoer med samme retning og **|score − current| <= bånd**,
   * **effektiv n >= ~30** (ellers er base-raten meningsløs),
   * hit-rate med **Wilson-konfidensintervall** over terskel (nedre grense, ikke punktestimat),
   * **expectancy i R** positiv med margin.
@@ -53,26 +57,22 @@ def _mean_ci(values: list[float], z: float = 1.96) -> tuple[float, tuple[float, 
     return (mean, (mean - z * se, mean + z * se))
 
 
-def distance(a: dict[str, float], b: dict[str, float]) -> float:
-    """Euklidsk avstand pr dimensjon (normalisert), kun over felles drivere."""
-    keys = a.keys() & b.keys()
-    if not keys:
-        return float("inf")
-    sq = sum((a[k] - b[k]) ** 2 for k in keys)
-    return math.sqrt(sq / len(keys))
+def neighbors_by_score(rows: list[PanelRow], current_score: float, direction: str,
+                       band: float) -> list[PanelRow]:
+    """Train-datoer med samme retning og aggregert score innenfor båndet."""
+    return [r for r in rows
+            if r.direction == direction and abs(r.score - current_score) <= band]
 
 
-def evaluate(rows: list[PanelRow], current_vector: dict[str, float], direction: str, *,
-             similarity: float = 0.15, min_effective_n: int = 30,
+def evaluate(rows: list[PanelRow], current_score: float, direction: str, *,
+             band: float = 0.1, min_effective_n: int = 30,
              min_hit_rate_pct: float = 55.0, min_expectancy_r: float = 0.3) -> BaseRate:
-    """Vurder en setup mot historiske analoger."""
-    neighbors = [r for r in rows
-                 if r.direction == direction
-                 and distance(r.vector, current_vector) <= similarity]
+    """Vurder en setup mot historiske analoger (matchet på score-bånd + retning)."""
+    neighbors = neighbors_by_score(rows, current_score, direction, band)
     n = len(neighbors)
     if n == 0:
         return BaseRate(0, 0.0, (0.0, 0.0), 0.0, (0.0, 0.0), False,
-                        "ingen historiske analoger innenfor likhetsterskel")
+                        "ingen historiske analoger i score-båndet")
 
     k = sum(1 for r in neighbors if r.hit)
     hit_rate = k / n
