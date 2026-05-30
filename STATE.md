@@ -3,7 +3,7 @@
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
 **Sist oppdatert:** 2026-05-30
-**Nåværende fase:** **Fase 0–3 ferdig** (stillas, data, nivå-feed, scoring). Kjører videre mot fase 4.
+**Nåværende fase:** **Fase 0–4 ferdig** (stillas, data, nivå-feed, scoring, base-rate-gate). Neste: fase 5 (publish).
 
 ## K1-resultat (2026-05-30) — løst positivt
 cTrader-spike (`scripts/ctrader_depth_spike.py`, read-only, demo) viste **dyp D1-historikk** på Skilling:
@@ -12,10 +12,9 @@ Gull (GOLD) ~28 år, Olje (OIL WTI) ~20 år, Indeks (SPX500) ~14 år. Token gyld
 Skilling-tickere: `GOLD`(41), `OIL WTI`(99), `OIL BRENT`, `SPX500`(203).
 
 ## Neste konkrete steg
-**Fase 4:** `generator.py` (reelle nivåer på Skilling-feed: swing/round/prior H-L, SL=buffer×ATR, TP=neste nivå)
-+ `outcomes.py` (forward-return/MaxDD, OOS-holdout siste 2–3 år) + `test_gate.py` (look-ahead-vern FØR base-rate)
-+ `gate.py` (likhetsterskel + effektiv n ~30+ + konfidensintervall). NB: hent DYP prishistorikk først
-(`python -m setups.ctrader_prices GOLD EURUSD Coffee --years 15`) — kun 2 år ligger i db nå.
+**Fase 5:** `publish.py` → `web/data/setups.json` (schema_version + generated + signals[] med entry/SL/TP/R:R,
+grade, base-rate-badge n+CI, forkastede m/grunn, driver-trace). Bygg en `run.py` som binder
+fetch→score→generator→gate→publish. NB: panel-bygg er tregt (~55s/instr) — vurder caching av panel i run.
 
 ### Status (2026-05-30)
 - **Fase 0:** git (branch `main`), `.gitignore`, `pyproject.toml` (src-layout), `secrets.py` (env overstyrer fil),
@@ -30,8 +29,12 @@ Skilling-tickere: `GOLD`(41), `OIL WTI`(99), `OIL BRENT`, `SPX500`(203).
 - **Fase 3:** `score/` (context as-of, drivers @register, engine, grade). Fingerprints i `config/instruments/`.
   Drivere bygd på seedet data; realrente = DGS10−T10YIE, EURUSD rentediff = DGS10−IRLTLT01DEM156N, kaffe = ENSO(NOAA_ONI)+DEXBZUS.
   Kjør: `python -m setups.score`... (via engine.load_fingerprint('gold'|'eurusd'|'coffee')).
-- `ruff` rent, `pytest` 17 grønne + 1 skip (live FRED). `data/regnbue.db` git-ignorert.
-  **Viktig for fase 4:** kun 2 år priser i db nå (smoke) — hent 15 år før base-rate/outcomes.
+- **Fase 4:** `outcomes.py` (triple-barrier i R, ATR, look-ahead-trygt panel, OOS-merking),
+  `gate.py` (likhetsnaboer + effektiv n + Wilson nedre-CI + expectancy-CI), `generator.py` (fraktal-swing +
+  runde nivåer, entry/SL/TP, R:R-floor). Dyp historikk hentet: GOLD 3783 / EURUSD 4016 / **Coffee 1230 (~5 år)**.
+  Ende-til-ende på 2026-05-28: alle 3 korrekt IKKE publisert (svakt signal + for få analoger) — gate fungerer.
+- `ruff` rent, `pytest` **26 grønne** + 1 skip (live FRED). `data/regnbue.db` git-ignorert.
+- Terskler LÅST (audit V3): similarity 0.15, effektiv n≥30, hit-rate≥55% (nedre CI), expectancy≥0.3R. Tunes IKKE for å tvinge publisering.
 
 ## Hva er gjort
 - Kartlagt #1/#2, skrevet alle plan-/datadokumenter.

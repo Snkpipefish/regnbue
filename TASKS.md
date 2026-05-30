@@ -31,12 +31,15 @@ Detaljer per fase i `PLAN.md §8`. Kryss av straks ferdig. **MVP = 3 instrumente
       alle 4 drivere fyrer pr instrument, koherente traces, NEUTRAL på 2026-05-28
 - [x] logiske tester (17 grønne): as-of-vern, persentil-ekstrem, vekt-renormalisering, grade-terskler
 
-## Fase 4 — setups + base-rate
-- [ ] `generator.py` reelle nivåer (swing/round/prior) på Skilling-koordinat (gamma: kun BTC/ETH, post-MVP)
-- [ ] `outcomes.py` forward-return/MaxDD (regnes ferskt; OOS-holdout siste 2–3 år)
-- [ ] `test_gate.py` beviser look-ahead-vern FØR base-rate brukes (audit V4)
-- [ ] `gate.py` base-rate-gatekeeper: likhetsterskel + effektiv n ~30+ + konfidensintervall (audit K2)
-- [ ] spiss de 3 MVP-fingerprintene
+## Fase 4 — setups + base-rate ✅ FERDIG 2026-05-30 (kjerne)
+- [x] `generator.py` reelle nivåer (fraktal-swing + runde tall) på Skilling-koordinat, entry/SL(buffer×ATR)/TP, R:R-floor
+- [x] `outcomes.py` triple-barrier i R + ATR + look-ahead-trygt panel (score-vektor + utfall), OOS-merking
+- [x] `test_gate.py` beviser look-ahead-vern (utfall ignorerer bevegelser etter horisont; as-of-trygt panel) — GRØNT
+- [x] `gate.py` base-rate-gatekeeper: likhetsterskel + effektiv n + **Wilson nedre CI** på hit-rate + expectancy-CI (audit K2)
+- [x] Ende-til-ende verifisert på ekte data: alle 3 korrekt IKKE publisert (svakt signal + for få analoger) — ærlig gate
+- [ ] spiss de 3 MVP-fingerprintene (løpende; terskler LÅST før resultater — tunes ikke for å tvinge publisering)
+- Åpent: (a) panel-bygg ~55s/instrument (re-scorer pr dato) — optimaliser ved behov; (b) runtime bruker
+  kun train-panel som naboer (OOS ekskludert) → færre analoger; vurder full historikk for live-beslutning
 
 ## Fase 5 — publisering
 - [ ] `publish.py` → `web/data/setups.json` (schema_version + generated)

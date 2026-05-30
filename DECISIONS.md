@@ -41,5 +41,14 @@ Endres bare ved bevisst ny beslutning. Format: dato — valg — kort begrunnels
   pandas/pydantic/pyyaml/requests; dev ruff+pytest; extra `ctrader`), `src/setups/secrets.py`
   (env overstyrer fil, sti via `REGNBUE_SECRETS_ENV`), `tests/test_smoke.py` grønn. `scripts/` ekskl. fra ruff.
 
+- **2026-05-30 — Base-rate-terskler LÅST (V3):** similarity 0.15 (euklidsk pr driver-dim), effektiv n≥30,
+  hit-rate≥55% målt på **Wilson nedre CI-grense** (ikke punktestimat), expectancy≥0.3R med CI>0.
+  Settes i fingerprintenes `base_rate:`. Tunes IKKE for å tvinge publisering; valideres mot OOS-holdout.
+- **2026-05-30 — Utfall: triple-barrier i R** på Skilling-feed (SL=−1R, TP=+rr, ellers delvis ved tidsutløp),
+  konservativt SL-først ved tvetydig bar. Nivåer = fraktal-swing (wing=3) + runde tall; SL bak swing − buffer×ATR.
+- **2026-05-30 — Fase 4 ferdig (kjerne):** look-ahead-vern bevist (`test_gate.py`), 26 tester grønne.
+  Coffee har kun ~5 år D1 på Skilling (gate avviser ærlig ved for få analoger).
+
 ## Uavklart (ikke låst ennå)
-- Base-rate-terskler (settes + LÅSES før resultater ses, mot OOS).
+- Panel-ytelse (~55s/instr) — caching/vektorisering ved behov i fase 5 `run.py`.
+- Skal live-beslutning bruke full historikk som naboer, eller kun train (OOS ekskludert som nå)?
