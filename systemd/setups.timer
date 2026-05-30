@@ -2,9 +2,11 @@
 Description=Regnbue — kjør setups-pipeline hver 6. time
 
 [Timer]
+# Hver 6. time (00, 06, 12, 18) + 10 min etter boot. Persistent fanger opp tapte kjøringer.
+OnCalendar=*-*-* 00/6:00:00
 OnBootSec=10min
-OnUnitActiveSec=6h
 Persistent=true
+RandomizedDelaySec=2min
 
 [Install]
 WantedBy=timers.target

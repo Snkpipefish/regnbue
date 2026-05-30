@@ -3,7 +3,7 @@
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
 **Sist oppdatert:** 2026-05-30
-**Nåværende fase:** **Fase 0–6 ferdig** (MVP lokalt komplett: data→scoring→gate→publish→UI). Gjenstår: fase 7 (live).
+**Nåværende fase:** **ALLE FASER (0–7) FERDIG — LIVE.** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue
 
 ## K1-resultat (2026-05-30) — løst positivt
 cTrader-spike (`scripts/ctrader_depth_spike.py`, read-only, demo) viste **dyp D1-historikk** på Skilling:
@@ -11,11 +11,16 @@ Gull (GOLD) ~28 år, Olje (OIL WTI) ~20 år, Indeks (SPX500) ~14 år. Token gyld
 1344 symboler. **→ K3 løst:** regn både nivåer OG base-rate på Skilling-feed (ett koordinatsystem).
 Skilling-tickere: `GOLD`(41), `OIL WTI`(99), `OIL BRENT`, `SPX500`(203).
 
-## Neste konkrete steg
-**Fase 7 (LIVE — krever din OK):** `update.sh` (flock + git add/commit/rebase/push, mønster fra cot-explorer)
-+ systemd timer (hver 6. time). Deretter oppretter JEG public GitHub-repo + skrur på Pages + første push.
-Kjør hele pipelinen: `python -m setups.run` (skriver web/data/setups.json). Full datahenting før push:
-`setups.seed`, `setups.ctrader_prices GOLD EURUSD Coffee --years 15`, `setups.fetch.fred`.
+## Neste konkrete steg (etter-MVP / drift)
+- Observer at systemd-timeren publiserer hver 6. time (`journalctl --user -u setups.service`).
+- **Spissing/forbedring:** flere drivere (GVZ/DXY/ENSO egne fetchere), gamma BTC/ETH (Deribit), validér gate på OOS.
+- **Skalér forbi MVP:** flere instrumenter (alle 22) når tesen er bekreftet på Gull/EURUSD/Kaffe.
+- Vurdér: full historikk vs train-panel som naboer; optimalisér panel-bygg (~55s/instr).
+
+## Drift
+- Manuell publisering: `./update.sh`. Pipeline: `python -m setups.run`.
+- Full re-seed/henting: `python -m setups.seed`; `python -m setups.ctrader_prices GOLD EURUSD Coffee --years 15`.
+- Timer: `systemctl --user {status,start,stop} setups.timer`.
 
 ### Status (2026-05-30)
 - **Fase 0:** git (branch `main`), `.gitignore`, `pyproject.toml` (src-layout), `secrets.py` (env overstyrer fil),

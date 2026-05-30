@@ -49,6 +49,11 @@ Endres bare ved bevisst ny beslutning. Format: dato — valg — kort begrunnels
 - **2026-05-30 — Fase 4 ferdig (kjerne):** look-ahead-vern bevist (`test_gate.py`), 26 tester grønne.
   Coffee har kun ~5 år D1 på Skilling (gate avviser ærlig ved for få analoger).
 
+- **2026-05-30 — Fase 7 LIVE:** public repo **github.com/Snkpipefish/regnbue** (konto Snkpipefish, ssh),
+  Pages via GitHub Actions-deploy fra `web/` (ikke /docs) → **https://snkpipefish.github.io/regnbue/**.
+  systemd-user-timer (`setups.timer`, hver 6h, linger på) kjører `update.sh`. Publisert `web/data/setups.json`
+  committes (rot-`/data/` ignoreres, ikke `web/data/`). ALLE FASER 0–7 ferdig.
+
 ## Uavklart (ikke låst ennå)
-- Panel-ytelse (~55s/instr) — caching/vektorisering ved behov i fase 5 `run.py`.
+- Panel-ytelse (~55s/instr) — caching/vektorisering ved behov.
 - Skal live-beslutning bruke full historikk som naboer, eller kun train (OOS ekskludert som nå)?
