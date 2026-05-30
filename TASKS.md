@@ -41,11 +41,13 @@ Detaljer per fase i `PLAN.md §8`. Kryss av straks ferdig. **MVP = 3 instrumente
 - Åpent: (a) panel-bygg ~55s/instrument (re-scorer pr dato) — optimaliser ved behov; (b) runtime bruker
   kun train-panel som naboer (OOS ekskludert) → færre analoger; vurder full historikk for live-beslutning
 
-## Fase 5 — publisering
-- [ ] `publish.py` → `web/data/setups.json` (schema_version + generated)
+## Fase 5 — publisering ✅ FERDIG 2026-05-30
+- [x] `publish.py` → `web/data/setups.json` (schema_version, generated ISO, as_of, signals[] m/ base-rate+drivere)
+- [x] `run.py` binder score→generator→gate→publish (panel pr instrument). JSON-kontrakt-test grønn
 
-## Fase 6 — UI
-- [ ] `web/index.html` beslutnings-UI (regnbue-tema)
+## Fase 6 — UI ✅ FERDIG 2026-05-30
+- [x] `web/index.html` beslutnings-UI (regnbue-tema, vanilla JS): setup-kort m/ entry/SL/T1/R:R,
+      base-rate-badge (n+CI+R), driver-chips → modal, forkastede m/grunn. Visuelt verifisert (screenshot)
 
 ## Fase 7 — live
 - [ ] `update.sh` + systemd-timer

@@ -15,11 +15,11 @@ venv/
 .ruff_cache/
 .mypy_cache/
 
-# datastore (seeded/fetched, not committed)
+# datastore (seeded/fetched, not committed) — kun rot-data/, IKKE web/data/ (publisert JSON)
 *.db
 *.sqlite
 *.sqlite3
-data/
+/data/
 *.parquet
 
 # secrets — NEVER commit (lives in ~/.bedrock/secrets.env)

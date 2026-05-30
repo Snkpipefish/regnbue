@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "generated": "2026-05-30T03:43:19Z",
+  "as_of": "2026-05-28",
+  "signals": [
+    {
+      "instrument": "Coffee",
+      "ticker": "Coffee",
+      "direction": "SHORT",
+      "grade": "NONE",
+      "score": -0.1986,
+      "published": false,
+      "entry": 272.23,
+      "sl": 282.025179,
+      "tp": 260,
+      "rr": 1.249,
+      "atr": 8.100714,
+      "reject_reason": "ingen grade (for svakt signal); R:R 1.25 < 1.5; base-rate: for få analoger (n=6 < 30); hit-rate nedre CI 44% < 55%",
+      "base_rate": {
+        "n": 6,
+        "hit_rate": 0.8333,
+        "hit_rate_ci": [
+          0.4365,
+          0.9699
+        ],
+        "expectancy_r": 1.5,
+        "expectancy_ci": [
+          0.52,
+          2.48
+        ],
+        "passes": false,
+        "reason": "for få analoger (n=6 < 30); hit-rate nedre CI 44% < 55%"
+      },
+      "drivers": [
+        {
+          "name": "cot_spec_net_percentile",
+          "ok": true,
+          "score": -0.6667,
+          "detail": "Coffee spec-net p17"
+        },
+        {
+          "name": "price_vs_sma",
+          "ok": true,
+          "score": -0.9997,
+          "detail": "Coffee -22.1% vs SMA200"
+        },
+        {
+          "name": "momentum",
+          "ok": true,
+          "score": 0.9155,
+          "detail": "DEXBZUS 21d-endring -0.264 (z=-1.56)"
+        },
+        {
+          "name": "level_percentile",
+          "ok": true,
+          "score": 0.4828,
+          "detail": "NOAA_ONI nivå 0.11 = p74"
+        }
+      ]
+    },
+    {
+      "instrument": "Gold",
+      "ticker": "GOLD",
+      "direction": "LONG",
+      "grade": "NONE",
+      "score": 0.0633,
+      "published": false,
+      "entry": 4538.02,
+      "sl": 4510.811071,
+      "tp": 4600,
+      "rr": 2.278,
+      "atr": 103.315714,
+      "reject_reason": "ingen grade (for svakt signal); base-rate: for få analoger (n=21 < 30); hit-rate nedre CI 21% < 55%; expectancy +0.14R < 0.30R; expectancy CI inkluderer ≤0 (-0.50R)",
+      "base_rate": {
+        "n": 21,
+        "hit_rate": 0.381,
+        "hit_rate_ci": [
+          0.2075,
+          0.5912
+        ],
+        "expectancy_r": 0.1429,
+        "expectancy_ci": [
+          -0.4956,
+          0.7814
+        ],
+        "passes": false,
+        "reason": "for få analoger (n=21 < 30); hit-rate nedre CI 21% < 55%; expectancy +0.14R < 0.30R; expectancy CI inkluderer ≤0 (-0.50R)"
+      },
+      "drivers": [
+        {
+          "name": "series_spread_percentile",
+          "ok": true,
+          "score": -0.6968,
+          "detail": "DGS10-T10YIE = +2.1 (p85)"
+        },
+        {
+          "name": "momentum",
+          "ok": true,
+          "score": 0.4629,
+          "detail": "DTWEXBGS 21d-endring -0.846 (z=-0.50)"
+        },
+        {
+          "name": "cot_spec_net_percentile",
+          "ok": true,
+          "score": 0.0897,
+          "detail": "Gold spec-net p54"
+        },
+        {
+          "name": "price_vs_sma",
+          "ok": true,
+          "score": 0.5546,
+          "detail": "GOLD +3.1% vs SMA200"
+        }
+      ]
+    },
+    {
+      "instrument": "EURUSD",
+      "ticker": "EURUSD",
+      "direction": "LONG",
+      "grade": "NONE",
+      "score": 0.0141,
+      "published": false,
+      "entry": 1.16574,
+      "sl": 1.164113,
+      "tp": 1.16812,
+      "rr": 1.463,
+      "atr": 0.005386,
+      "reject_reason": "ingen grade (for svakt signal); R:R 1.46 < 1.5; base-rate: ingen historiske analoger innenfor likhetsterskel",
+      "base_rate": {
+        "n": 0,
+        "hit_rate": 0.0,
+        "hit_rate_ci": [
+          0.0,
+          0.0
+        ],
+        "expectancy_r": 0.0,
+        "expectancy_ci": [
+          0.0,
+          0.0
+        ],
+        "passes": false,
+        "reason": "ingen historiske analoger innenfor likhetsterskel"
+      },
+      "drivers": [
+        {
+          "name": "series_spread_percentile",
+          "ok": true,
+          "score": -0.2128,
+          "detail": "DGS10-IRLTLT01DEM156N = +1.59 (p61)"
+        },
+        {
+          "name": "momentum",
+          "ok": true,
+          "score": 0.4629,
+          "detail": "DTWEXBGS 21d-endring -0.846 (z=-0.50)"
+        },
+        {
+          "name": "cot_spec_net_percentile",
+          "ok": true,
+          "score": -0.141,
+          "detail": "EURUSD spec-net p43"
+        },
+        {
+          "name": "price_vs_sma",
+          "ok": true,
+          "score": -0.0383,
+          "detail": "EURUSD -0.2% vs SMA200"
+        }
+      ]
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
 **Sist oppdatert:** 2026-05-30
-**Nåværende fase:** **Fase 0–4 ferdig** (stillas, data, nivå-feed, scoring, base-rate-gate). Neste: fase 5 (publish).
+**Nåværende fase:** **Fase 0–6 ferdig** (MVP lokalt komplett: data→scoring→gate→publish→UI). Gjenstår: fase 7 (live).
 
 ## K1-resultat (2026-05-30) — løst positivt
 cTrader-spike (`scripts/ctrader_depth_spike.py`, read-only, demo) viste **dyp D1-historikk** på Skilling:
@@ -12,9 +12,10 @@ Gull (GOLD) ~28 år, Olje (OIL WTI) ~20 år, Indeks (SPX500) ~14 år. Token gyld
 Skilling-tickere: `GOLD`(41), `OIL WTI`(99), `OIL BRENT`, `SPX500`(203).
 
 ## Neste konkrete steg
-**Fase 5:** `publish.py` → `web/data/setups.json` (schema_version + generated + signals[] med entry/SL/TP/R:R,
-grade, base-rate-badge n+CI, forkastede m/grunn, driver-trace). Bygg en `run.py` som binder
-fetch→score→generator→gate→publish. NB: panel-bygg er tregt (~55s/instr) — vurder caching av panel i run.
+**Fase 7 (LIVE — krever din OK):** `update.sh` (flock + git add/commit/rebase/push, mønster fra cot-explorer)
++ systemd timer (hver 6. time). Deretter oppretter JEG public GitHub-repo + skrur på Pages + første push.
+Kjør hele pipelinen: `python -m setups.run` (skriver web/data/setups.json). Full datahenting før push:
+`setups.seed`, `setups.ctrader_prices GOLD EURUSD Coffee --years 15`, `setups.fetch.fred`.
 
 ### Status (2026-05-30)
 - **Fase 0:** git (branch `main`), `.gitignore`, `pyproject.toml` (src-layout), `secrets.py` (env overstyrer fil),
@@ -35,6 +36,9 @@ fetch→score→generator→gate→publish. NB: panel-bygg er tregt (~55s/instr)
   Ende-til-ende på 2026-05-28: alle 3 korrekt IKKE publisert (svakt signal + for få analoger) — gate fungerer.
 - `ruff` rent, `pytest` **26 grønne** + 1 skip (live FRED). `data/regnbue.db` git-ignorert.
 - Terskler LÅST (audit V3): similarity 0.15, effektiv n≥30, hit-rate≥55% (nedre CI), expectancy≥0.3R. Tunes IKKE for å tvinge publisering.
+- **Fase 5–6:** `publish.py` + `run.py` (→ `web/data/setups.json`, committes for Pages — `/data/` ignoreres, ikke `web/data/`),
+  `web/index.html` (regnbue-UI, vanilla JS, visuelt verifisert). `pytest` 28 grønne + 1 skip.
+  Kjørt 2026-05-28: 3 signaler, 0 publisert (ærlig gate). MVP fase 0–6 komplett lokalt.
 
 ## Hva er gjort
 - Kartlagt #1/#2, skrevet alle plan-/datadokumenter.

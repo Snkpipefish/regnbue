@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Regnbue — setups</title>
+<style>
+  :root {
+    --bg: #0e1116; --card: #171b22; --card2: #1d222b; --txt: #e6e9ef;
+    --muted: #8b94a3; --line: #2a303b; --long: #34d399; --short: #f87171;
+    --rainbow: linear-gradient(90deg,#ff5e5e,#ffb74d,#ffe14d,#5ee07a,#4dd0e1,#7c6cff,#c46cff);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--txt);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { padding: 22px 20px 16px; border-bottom: 1px solid var(--line); }
+  .title { font-size: 26px; font-weight: 800; letter-spacing: .3px; }
+  .title .bow { background: var(--rainbow); -webkit-background-clip: text;
+                background-clip: text; color: transparent; }
+  .sub { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .bar { height: 4px; background: var(--rainbow); }
+  main { max-width: 920px; margin: 0 auto; padding: 20px; }
+  h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .12em;
+       color: var(--muted); margin: 26px 0 10px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+          padding: 16px 18px; margin-bottom: 12px; }
+  .card.rejected { opacity: .82; }
+  .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .inst { font-size: 19px; font-weight: 700; }
+  .dir { font-weight: 800; font-size: 13px; padding: 2px 10px; border-radius: 999px; }
+  .dir.LONG { background: rgba(52,211,153,.15); color: var(--long); }
+  .dir.SHORT { background: rgba(248,113,113,.15); color: var(--short); }
+  .dir.NEUTRAL { background: #2a303b; color: var(--muted); }
+  .grade { font-weight: 800; padding: 2px 9px; border-radius: 8px; font-size: 13px;
+           background: var(--rainbow); color: #11151c; }
+  .grade.NONE { background: #2a303b; color: var(--muted); }
+  .spacer { flex: 1; }
+  .levels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            margin: 14px 0 4px; }
+  .lv { background: var(--card2); border-radius: 10px; padding: 8px 10px; }
+  .lv .k { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+  .lv .v { font-size: 17px; font-weight: 700; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .badge { display: inline-block; margin-top: 12px; padding: 7px 12px; border-radius: 10px;
+           font-size: 13px; background: var(--card2); border: 1px solid var(--line); }
+  .badge.pass { border-color: rgba(52,211,153,.4); }
+  .badge.fail { border-color: rgba(248,113,113,.35); color: var(--muted); }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .chip { font-size: 12px; padding: 4px 10px; border-radius: 999px; cursor: pointer;
+          border: 1px solid var(--line); background: var(--card2); }
+  .chip .s { font-variant-numeric: tabular-nums; opacity: .9; }
+  .chip.pos { border-color: rgba(52,211,153,.45); }
+  .chip.neg { border-color: rgba(248,113,113,.4); }
+  .chip.na { opacity: .5; }
+  .reason { color: var(--muted); font-size: 13px; margin-top: 10px; }
+  .empty { color: var(--muted); padding: 18px 0; }
+  /* modal */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none;
+             align-items: center; justify-content: center; padding: 18px; }
+  .overlay.open { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+           max-width: 560px; width: 100%; max-height: 84vh; overflow: auto; padding: 20px; }
+  .modal h3 { margin: 0 0 4px; }
+  .drv { border-top: 1px solid var(--line); padding: 10px 0; }
+  .drv .top { display: flex; gap: 10px; align-items: baseline; }
+  .drv .nm { font-weight: 700; }
+  .drv .sc { font-variant-numeric: tabular-nums; }
+  .drv .dt { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .pos { color: var(--long); } .neg { color: var(--short); }
+  .x { cursor: pointer; color: var(--muted); float: right; font-size: 20px; }
+  footer { color: var(--muted); font-size: 12px; text-align: center; padding: 24px; }
+</style>
+</head>
+<body>
+<div class="bar"></div>
+<header>
+  <div class="title"><span class="bow">Regnbue</span> — setups</div>
+  <div class="sub" id="meta">laster …</div>
+</header>
+<main>
+  <h2>Publiserte setups</h2>
+  <div id="published"></div>
+  <h2>Forkastede (med grunn)</h2>
+  <div id="rejected"></div>
+</main>
+<div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+<footer>Manuell trading på Skilling · base-rate-gated · ingen bot</footer>
+
+<script>
+const fmt = (n) => (n == null ? "–" : (Math.abs(n) >= 100 ? n.toFixed(2)
+  : Math.abs(n) >= 1 ? n.toFixed(3) : n.toPrecision(5)));
+const pct = (x) => (x == null ? "–" : (x * 100).toFixed(0) + "%");
+
+function chip(d) {
+  const cls = !d.ok ? "na" : d.score > 0 ? "pos" : d.score < 0 ? "neg" : "";
+  return `<span class="chip ${cls}" data-d='${encodeURIComponent(JSON.stringify(d))}'>
+    ${d.name} <span class="s">${d.ok ? (d.score>0?"+":"")+d.score.toFixed(2) : "n/a"}</span></span>`;
+}
+
+function baseRateBadge(br, published) {
+  if (!br || br.n === 0) return `<div class="badge fail">base-rate: ingen analoger</div>`;
+  const ci = br.hit_rate_ci.map(x => (x*100).toFixed(0)).join("–");
+  return `<div class="badge ${published ? "pass" : "fail"}">
+    ${br.n} analoger · ${pct(br.hit_rate)} til T1 (${ci}%) ·
+    ${(br.expectancy_r>=0?"+":"")}${br.expectancy_r.toFixed(2)}R</div>`;
+}
+
+function card(s) {
+  const lv = (k, v) => `<div class="lv"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+  return `<div class="card ${s.published ? "" : "rejected"}">
+    <div class="row">
+      <span class="inst">${s.instrument}</span>
+      <span class="dir ${s.direction}">${s.direction}</span>
+      <span class="grade ${s.grade}">${s.grade === "NONE" ? "—" : s.grade}</span>
+      <span class="spacer"></span>
+      <span class="sub">${s.ticker} · score ${s.score.toFixed(3)}</span>
+    </div>
+    <div class="levels">
+      ${lv("Entry", fmt(s.entry))}${lv("SL", fmt(s.sl))}
+      ${lv("T1", fmt(s.tp))}${lv("R:R", s.rr.toFixed(2))}
+    </div>
+    ${baseRateBadge(s.base_rate, s.published)}
+    <div class="chips">${s.drivers.map(chip).join("")}</div>
+    ${s.published ? "" : `<div class="reason">⛔ ${s.reject_reason}</div>`}
+  </div>`;
+}
+
+function openModal(d) {
+  const cls = d.score > 0 ? "pos" : "neg";
+  document.getElementById("modal").innerHTML = `
+    <span class="x" onclick="closeModal()">×</span>
+    <h3>${d.name}</h3>
+    <div class="drv"><div class="top"><span class="nm">Score</span>
+      <span class="sc ${cls}">${d.ok ? (d.score>0?"+":"")+d.score.toFixed(4) : "n/a"}</span></div>
+      <div class="dt">${d.detail || ""}</div></div>`;
+  document.getElementById("overlay").classList.add("open");
+}
+function closeModal() { document.getElementById("overlay").classList.remove("open"); }
+document.getElementById("overlay").addEventListener("click", (e) => {
+  if (e.target.id === "overlay") closeModal();
+});
+
+function bindChips() {
+  document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+    openModal(JSON.parse(decodeURIComponent(c.dataset.d)));
+  }));
+}
+
+fetch("data/setups.json?_=" + Date.now())
+  .then(r => r.json())
+  .then(d => {
+    const gen = new Date(d.generated).toLocaleString("no-NO");
+    document.getElementById("meta").textContent =
+      `Beslutningsdato ${d.as_of} · generert ${gen} · schema v${d.schema_version}`;
+    const pub = d.signals.filter(s => s.published);
+    const rej = d.signals.filter(s => !s.published);
+    document.getElementById("published").innerHTML =
+      pub.length ? pub.map(card).join("") : `<div class="empty">Ingen setups passerte base-rate-gaten i dag.</div>`;
+    document.getElementById("rejected").innerHTML =
+      rej.length ? rej.map(card).join("") : `<div class="empty">Ingen.</div>`;
+    bindChips();
+  })
+  .catch(e => { document.getElementById("meta").textContent = "Klarte ikke laste data/setups.json: " + e; });
+</script>
+</body>
+</html>
