@@ -126,18 +126,29 @@ def series_spread_percentile(ctx: ScoreContext, params: dict) -> DriverResult:
 
 @register("price_vs_sma")
 def price_vs_sma(ctx: ScoreContext, params: dict) -> DriverResult:
-    """Avstand fra glidende snitt på NIVÅ-feeden; trend-driver (bullish over)."""
+    """Avstand fra glidende snitt på NIVÅ-feeden; trend-driver (bullish over).
+
+    Avviket (close−SMA)/SMA z-skåres mot instrumentets EGEN avviks-spredning over en
+    historikk, så driveren beholder gradering på tvers av instrumenter og bare metter ved
+    ekte ekstremer (i stedet for en vilkårlig fast skala som metter alt volatilt).
+    """
     closes = ctx.closes(params["symbol"], params.get("tf", "D1"))
     window = params.get("window", 200)
-    if len(closes) < window:
+    hist = params.get("hist", 250)
+    if len(closes) < window + 1:
         return _miss("price_vs_sma", params["symbol"], params)
     vals = [c for _, c in closes]
-    sma = statistics.fmean(vals[-window:])
-    cur = vals[-1]
-    dev = (cur - sma) / sma if sma else 0.0
-    score = math.tanh(dev * params.get("scale", 20))
-    return DriverResult("price_vs_sma", True, round(score, 4), dev,
-                        f"{params['symbol']} {dev*100:+.1f}% vs SMA{window}", params)
+    # Avviks-serie over de siste `hist` punktene (rullerende SMA).
+    devs: list[float] = []
+    for t in range(max(window, len(vals) - hist), len(vals) + 1):
+        sma = statistics.fmean(vals[t - window:t])
+        devs.append((vals[t - 1] - sma) / sma if sma else 0.0)
+    cur = devs[-1]
+    sd = statistics.pstdev(devs) or 1e-9
+    z = cur / sd
+    score = math.tanh(z)
+    return DriverResult("price_vs_sma", True, round(score, 4), cur,
+                        f"{params['symbol']} {cur*100:+.1f}% vs SMA{window} (z={z:+.2f})", params)
 
 
 @register("cot_spec_net_percentile")

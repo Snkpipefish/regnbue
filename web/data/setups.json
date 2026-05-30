@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated": "2026-05-30T05:42:16Z",
+  "generated": "2026-05-30T08:22:45Z",
   "as_of": "2026-05-28",
   "signals": [
     {
@@ -8,28 +8,28 @@
       "ticker": "Coffee",
       "direction": "SHORT",
       "grade": "A",
-      "score": -0.5383,
+      "score": -0.5243,
       "published": false,
       "entry": 272.23,
       "sl": 282.025179,
       "tp": 260,
       "rr": 1.249,
       "atr": 8.100714,
-      "reject_reason": "R:R 1.25 < 1.5; base-rate: for få analoger (n=5 < 30); hit-rate nedre CI 12% < 55%; expectancy +0.20R < 0.30R; expectancy CI inkluderer ≤0 (-1.24R)",
+      "reject_reason": "R:R 1.25 < 1.5; base-rate: for få analoger (n=1 < 30); hit-rate nedre CI 0% < 55%; expectancy -1.00R < 0.30R; expectancy CI inkluderer ≤0 (-1.00R)",
       "base_rate": {
-        "n": 5,
-        "hit_rate": 0.4,
+        "n": 1,
+        "hit_rate": 0.0,
         "hit_rate_ci": [
-          0.1176,
-          0.7693
+          0.0,
+          0.7935
         ],
-        "expectancy_r": 0.2,
+        "expectancy_r": -1.0,
         "expectancy_ci": [
-          -1.2403,
-          1.6403
+          -1.0,
+          -1.0
         ],
         "passes": false,
-        "reason": "for få analoger (n=5 < 30); hit-rate nedre CI 12% < 55%; expectancy +0.20R < 0.30R; expectancy CI inkluderer ≤0 (-1.24R)"
+        "reason": "for få analoger (n=1 < 30); hit-rate nedre CI 0% < 55%; expectancy -1.00R < 0.30R; expectancy CI inkluderer ≤0 (-1.00R)"
       },
       "drivers": [
         {
@@ -41,8 +41,8 @@
         {
           "name": "price_vs_sma",
           "ok": true,
-          "score": -0.9997,
-          "detail": "Coffee -22.1% vs SMA200"
+          "score": -0.9531,
+          "detail": "Coffee -22.1% vs SMA200 (z=-1.86)"
         },
         {
           "name": "momentum",
@@ -63,20 +63,20 @@
       "ticker": "GOLD",
       "direction": "SHORT",
       "grade": "NONE",
-      "score": -0.0901,
+      "score": -0.1344,
       "published": false,
       "entry": 4538.02,
       "sl": 4575.628929,
       "tp": 4500.6,
       "rr": 0.995,
       "atr": 103.315714,
-      "reject_reason": "ingen grade (for svakt signal); R:R 0.99 < 1.5; base-rate: for få analoger (n=9 < 30); hit-rate nedre CI 0% < 55%; expectancy -1.00R < 0.30R; expectancy CI inkluderer ≤0 (-1.00R)",
+      "reject_reason": "ingen grade (for svakt signal); R:R 0.99 < 1.5; base-rate: for få analoger (n=2 < 30); hit-rate nedre CI 0% < 55%; expectancy -1.00R < 0.30R; expectancy CI inkluderer ≤0 (-1.00R)",
       "base_rate": {
-        "n": 9,
+        "n": 2,
         "hit_rate": 0.0,
         "hit_rate_ci": [
           0.0,
-          0.2992
+          0.6576
         ],
         "expectancy_r": -1.0,
         "expectancy_ci": [
@@ -84,7 +84,7 @@
           -1.0
         ],
         "passes": false,
-        "reason": "for få analoger (n=9 < 30); hit-rate nedre CI 0% < 55%; expectancy -1.00R < 0.30R; expectancy CI inkluderer ≤0 (-1.00R)"
+        "reason": "for få analoger (n=2 < 30); hit-rate nedre CI 0% < 55%; expectancy -1.00R < 0.30R; expectancy CI inkluderer ≤0 (-1.00R)"
       },
       "drivers": [
         {
@@ -108,8 +108,8 @@
         {
           "name": "price_vs_sma",
           "ok": true,
-          "score": 0.5546,
-          "detail": "GOLD +3.1% vs SMA200"
+          "score": 0.3774,
+          "detail": "GOLD +3.1% vs SMA200 (z=+0.40)"
         }
       ]
     },
@@ -118,28 +118,28 @@
       "ticker": "EURUSD",
       "direction": "SHORT",
       "grade": "NONE",
-      "score": -0.0555,
+      "score": -0.0632,
       "published": false,
       "entry": 1.16574,
       "sl": 1.168017,
       "tp": 1.16174,
       "rr": 1.757,
       "atr": 0.005386,
-      "reject_reason": "ingen grade (for svakt signal); base-rate: for få analoger (n=1 < 30); hit-rate nedre CI 0% < 55%; expectancy -1.00R < 0.30R; expectancy CI inkluderer ≤0 (-1.00R)",
+      "reject_reason": "ingen grade (for svakt signal); base-rate: ingen historiske analoger innenfor likhetsterskel",
       "base_rate": {
-        "n": 1,
+        "n": 0,
         "hit_rate": 0.0,
         "hit_rate_ci": [
           0.0,
-          0.7935
+          0.0
         ],
-        "expectancy_r": -1.0,
+        "expectancy_r": 0.0,
         "expectancy_ci": [
-          -1.0,
-          -1.0
+          0.0,
+          0.0
         ],
         "passes": false,
-        "reason": "for få analoger (n=1 < 30); hit-rate nedre CI 0% < 55%; expectancy -1.00R < 0.30R; expectancy CI inkluderer ≤0 (-1.00R)"
+        "reason": "ingen historiske analoger innenfor likhetsterskel"
       },
       "drivers": [
         {
@@ -163,8 +163,8 @@
         {
           "name": "price_vs_sma",
           "ok": true,
-          "score": -0.0383,
-          "detail": "EURUSD -0.2% vs SMA200"
+          "score": -0.0691,
+          "detail": "EURUSD -0.2% vs SMA200 (z=-0.07)"
         }
       ]
     }
