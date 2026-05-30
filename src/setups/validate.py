@@ -75,9 +75,14 @@ def validate(panel: Panel, *, band: float, min_effective_n: int,
     )
 
 
+def _all_fingerprints() -> list[str]:
+    from setups.score.engine import FINGERPRINT_DIR
+    return sorted(p.stem for p in FINGERPRINT_DIR.glob("*.yaml"))
+
+
 def run(db_path=store.DEFAULT_DB_PATH, fingerprints=None,
         oos_start="2024-01-01") -> list[Validation]:
-    fingerprints = fingerprints or ["gold", "eurusd", "coffee"]
+    fingerprints = fingerprints or _all_fingerprints()
     out: list[Validation] = []
     with store.connect(db_path) as conn:
         for name in fingerprints:

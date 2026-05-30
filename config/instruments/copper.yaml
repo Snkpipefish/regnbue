@@ -1,0 +1,37 @@
+id: Copper
+ticker: COPPER
+asset_class: metals
+drivers:
+- name: level_percentile
+  weight: 0.2
+  params:
+    series: BAMLH0A0HYM2
+    lookback_days: 504
+    bull_when: low
+- name: cot_spec_net_percentile
+  weight: 0.25
+  params:
+    market: Copper
+    lookback_weeks: 156
+    bull_when: high
+- name: price_vs_sma
+  weight: 0.3
+  params:
+    symbol: COPPER
+    window: 200
+    tf: D1
+- name: price_momentum
+  weight: 0.25
+  params:
+    symbol: COPPER
+    horizon_days: 20
+grade_thresholds:
+  A_plus: 0.55
+  A: 0.4
+  B: 0.25
+base_rate:
+  horizon_days: 30
+  band: 0.1
+  min_effective_n: 30
+  min_hit_rate_pct: 55
+  min_expectancy_r: 0.3

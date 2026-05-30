@@ -16,7 +16,10 @@ from setups.generator import build_setup
 from setups.outcomes import build_panel
 from setups.score.engine import load_fingerprint
 
-MVP_FINGERPRINTS = ["gold", "eurusd", "coffee"]
+
+def _all_fingerprints() -> list[str]:
+    from setups.score.engine import FINGERPRINT_DIR
+    return sorted(p.stem for p in FINGERPRINT_DIR.glob("*.yaml"))
 
 
 def _latest_date(conn, ticker: str) -> str | None:
@@ -28,7 +31,7 @@ def _latest_date(conn, ticker: str) -> str | None:
 
 def run(db_path=store.DEFAULT_DB_PATH, fingerprints: list[str] | None = None,
         out=publish.DEFAULT_OUT, as_of: str | None = None) -> dict:
-    fingerprints = fingerprints or MVP_FINGERPRINTS
+    fingerprints = fingerprints or _all_fingerprints()
     setups = []
     resolved_as_of = as_of
     with store.connect(db_path) as conn:
