@@ -3,7 +3,7 @@
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
 **Sist oppdatert:** 2026-05-30
-**Nåværende fase:** **Fase 0–2 ferdig** (stillas, datastore+seed, nivå-feed+fetch). Kjører videre mot fase 3.
+**Nåværende fase:** **Fase 0–3 ferdig** (stillas, data, nivå-feed, scoring). Kjører videre mot fase 4.
 
 ## K1-resultat (2026-05-30) — løst positivt
 cTrader-spike (`scripts/ctrader_depth_spike.py`, read-only, demo) viste **dyp D1-historikk** på Skilling:
@@ -12,9 +12,10 @@ Gull (GOLD) ~28 år, Olje (OIL WTI) ~20 år, Indeks (SPX500) ~14 år. Token gyld
 Skilling-tickere: `GOLD`(41), `OIL WTI`(99), `OIL BRENT`, `SPX500`(203).
 
 ## Neste konkrete steg
-**Fase 3:** `score/` — egen driver-registry (@register) + motor + grade + explain-trace, og 3 fingerprint-YAML
-(Gull, EURUSD, Kaffe) i `config/instruments/`. Logiske tester: gitt data → forvent score/grade.
-Her bestemmes hvilke konkrete serier hver driver bruker (avklarer GVZ/DXY/realrente-avledning + ENSO-fetcher).
+**Fase 4:** `generator.py` (reelle nivåer på Skilling-feed: swing/round/prior H-L, SL=buffer×ATR, TP=neste nivå)
++ `outcomes.py` (forward-return/MaxDD, OOS-holdout siste 2–3 år) + `test_gate.py` (look-ahead-vern FØR base-rate)
++ `gate.py` (likhetsterskel + effektiv n ~30+ + konfidensintervall). NB: hent DYP prishistorikk først
+(`python -m setups.ctrader_prices GOLD EURUSD Coffee --years 15`) — kun 2 år ligger i db nå.
 
 ### Status (2026-05-30)
 - **Fase 0:** git (branch `main`), `.gitignore`, `pyproject.toml` (src-layout), `secrets.py` (env overstyrer fil),
@@ -26,7 +27,11 @@ Her bestemmes hvilke konkrete serier hver driver bruker (avklarer GVZ/DXY/realre
 - **Fase 2:** `ctrader_prices.py` (NIVÅ-feed, read-only D1-OHLC via cTrader, token-refresh innebygd) +
   `fetch/fred.py` (makro). Skilling-tickere MVP: **GOLD, EURUSD, Coffee**. Hent priser:
   `python -m setups.ctrader_prices GOLD EURUSD Coffee --years 15`; makro: `python -m setups.fetch.fred`.
-- `ruff` rent, `pytest` 10 grønne + 1 skip (live FRED). `data/regnbue.db` er git-ignorert (regenereres).
+- **Fase 3:** `score/` (context as-of, drivers @register, engine, grade). Fingerprints i `config/instruments/`.
+  Drivere bygd på seedet data; realrente = DGS10−T10YIE, EURUSD rentediff = DGS10−IRLTLT01DEM156N, kaffe = ENSO(NOAA_ONI)+DEXBZUS.
+  Kjør: `python -m setups.score`... (via engine.load_fingerprint('gold'|'eurusd'|'coffee')).
+- `ruff` rent, `pytest` 17 grønne + 1 skip (live FRED). `data/regnbue.db` git-ignorert.
+  **Viktig for fase 4:** kun 2 år priser i db nå (smoke) — hent 15 år før base-rate/outcomes.
 
 ## Hva er gjort
 - Kartlagt #1/#2, skrevet alle plan-/datadokumenter.

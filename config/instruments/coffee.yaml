@@ -1,0 +1,22 @@
+id: Coffee
+ticker: Coffee          # Skilling-ticker (NB: stor C, ikke COFFEE)
+asset_class: softs
+drivers:
+  # Spekulant-posisjonering (ICE Coffee C), trend-bekreftende.
+  - name: cot_spec_net_percentile
+    weight: 0.30
+    params: {market: Coffee, lookback_weeks: 156, bull_when: high}
+  - name: price_vs_sma
+    weight: 0.30
+    params: {symbol: Coffee, window: 200, tf: D1}
+  # USD/BRL opp (svak real) → brasilianske bønder selger mer → bearish kaffe (bull_when: low).
+  - name: momentum
+    weight: 0.25
+    params: {series: DEXBZUS, horizon_days: 21, bull_when: low}
+  # ENSO (NOAA ONI): varm fase (El Niño) → tørke-risiko i Brasil → bullish kaffe.
+  - name: level_percentile
+    weight: 0.15
+    params: {series: NOAA_ONI, lookback_days: 1825, bull_when: high}
+grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
+base_rate: {horizon_days: 30, similarity: 0.15, min_effective_n: 30,
+            min_hit_rate_pct: 55, min_expectancy_r: 0.3}

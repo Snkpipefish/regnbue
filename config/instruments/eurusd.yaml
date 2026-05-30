@@ -1,0 +1,22 @@
+id: EURUSD
+ticker: EURUSD
+asset_class: fx
+drivers:
+  # US−DE 10-års rentediff. Høyere US-rente = sterkere USD = EURUSD bearish (bull_when: low).
+  - name: series_spread_percentile
+    weight: 0.30
+    params: {minuend: DGS10, subtrahend: IRLTLT01DEM156N, lookback_days: 504, bull_when: low}
+  # Bred dollar opp = EURUSD ned.
+  - name: momentum
+    weight: 0.25
+    params: {series: DTWEXBGS, horizon_days: 21, bull_when: low}
+  # EUR-spekulant-posisjonering (CME EURO FX), trend-bekreftende.
+  - name: cot_spec_net_percentile
+    weight: 0.20
+    params: {market: EURUSD, lookback_weeks: 156, bull_when: high}
+  - name: price_vs_sma
+    weight: 0.25
+    params: {symbol: EURUSD, window: 200, tf: D1}
+grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
+base_rate: {horizon_days: 30, similarity: 0.15, min_effective_n: 30,
+            min_hit_rate_pct: 55, min_expectancy_r: 0.3}

@@ -1,0 +1,162 @@
+"""Driver-registry + gjenbrukbare drivere.
+
+Hver driver returnerer en :class:`DriverResult` med ``score`` i [-1, 1] der **positivt =
+bullish** for instrumentet. Fingerprintene (YAML) komponerer disse med vekt + params.
+Egne implementasjoner; ingen kopiering fra bedrock.
+"""
+
+from __future__ import annotations
+
+import math
+import statistics
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import date, timedelta
+
+from setups.score.context import ScoreContext
+
+
+@dataclass
+class DriverResult:
+    name: str
+    ok: bool
+    score: float            # [-1, 1], + = bullish
+    value: float | None = None
+    detail: str = ""
+    params: dict = field(default_factory=dict)
+
+
+DriverFn = Callable[[ScoreContext, dict], DriverResult]
+_REGISTRY: dict[str, DriverFn] = {}
+
+
+def register(name: str) -> Callable[[DriverFn], DriverFn]:
+    def deco(fn: DriverFn) -> DriverFn:
+        if name in _REGISTRY:
+            raise ValueError(f"driver allerede registrert: {name}")
+        _REGISTRY[name] = fn
+        return fn
+    return deco
+
+
+def get_driver(name: str) -> DriverFn:
+    if name not in _REGISTRY:
+        raise KeyError(f"ukjent driver: {name} (registrert: {sorted(_REGISTRY)})")
+    return _REGISTRY[name]
+
+
+def registered() -> list[str]:
+    return sorted(_REGISTRY)
+
+
+# --- hjelpere ---
+def _sign(bull_when: str) -> int:
+    """+1 hvis bullish når verdien er høy, -1 hvis bullish når verdien er lav."""
+    return 1 if bull_when == "high" else -1
+
+
+def _percentile(history: list[float], current: float) -> float:
+    """Andel av historikk <= current, i [0, 1]."""
+    if not history:
+        return 0.5
+    return sum(1 for h in history if h <= current) / len(history)
+
+
+def _within_lookback(series: list[tuple[str, float]], as_of: str,
+                     lookback_days: int) -> list[tuple[str, float]]:
+    cutoff = (date.fromisoformat(as_of) - timedelta(days=lookback_days)).isoformat()
+    return [(d, v) for d, v in series if d >= cutoff]
+
+
+def _miss(name: str, why: str, params: dict) -> DriverResult:
+    return DriverResult(name=name, ok=False, score=0.0, detail=f"mangler data: {why}",
+                        params=params)
+
+
+# --- drivere ---
+@register("level_percentile")
+def level_percentile(ctx: ScoreContext, params: dict) -> DriverResult:
+    """Hvor dagens nivå ligger i sin lookback-fordeling (mean-reversion/regime)."""
+    series = _within_lookback(ctx.series(params["series"]), ctx.as_of,
+                              params.get("lookback_days", 504))
+    if len(series) < 20:
+        return _miss("level_percentile", params["series"], params)
+    vals = [v for _, v in series]
+    cur = vals[-1]
+    p = _percentile(vals, cur)
+    score = (2 * p - 1) * _sign(params.get("bull_when", "high"))
+    return DriverResult("level_percentile", True, round(score, 4), cur,
+                        f"{params['series']} nivå {cur:.3g} = p{p*100:.0f}", params)
+
+
+@register("momentum")
+def momentum(ctx: ScoreContext, params: dict) -> DriverResult:
+    """Normalisert endring over horisont; trend-driver."""
+    series = ctx.series(params["series"])
+    horizon = params.get("horizon_days", 21)
+    if len(series) < horizon + 20:
+        return _miss("momentum", params["series"], params)
+    vals = [v for _, v in series]
+    changes = [vals[i] - vals[i - horizon] for i in range(horizon, len(vals))]
+    cur_change = vals[-1] - vals[-1 - horizon]
+    sd = statistics.pstdev(changes) or 1e-9
+    z = cur_change / sd
+    score = math.tanh(z) * _sign(params.get("bull_when", "high"))
+    return DriverResult("momentum", True, round(score, 4), cur_change,
+                        f"{params['series']} {horizon}d-endring {cur_change:+.3g} (z={z:+.2f})",
+                        params)
+
+
+@register("series_spread_percentile")
+def series_spread_percentile(ctx: ScoreContext, params: dict) -> DriverResult:
+    """Persentil av en spread (minuend − subtrahend), f.eks. realrente el. rentediff."""
+    spread = _within_lookback(ctx.spread_series(params["minuend"], params["subtrahend"]),
+                              ctx.as_of, params.get("lookback_days", 504))
+    if len(spread) < 20:
+        return _miss("series_spread_percentile",
+                     f"{params['minuend']}-{params['subtrahend']}", params)
+    vals = [v for _, v in spread]
+    cur = vals[-1]
+    p = _percentile(vals, cur)
+    score = (2 * p - 1) * _sign(params.get("bull_when", "high"))
+    return DriverResult("series_spread_percentile", True, round(score, 4), cur,
+                        f"{params['minuend']}-{params['subtrahend']} = {cur:+.3g} (p{p*100:.0f})",
+                        params)
+
+
+@register("price_vs_sma")
+def price_vs_sma(ctx: ScoreContext, params: dict) -> DriverResult:
+    """Avstand fra glidende snitt på NIVÅ-feeden; trend-driver (bullish over)."""
+    closes = ctx.closes(params["symbol"], params.get("tf", "D1"))
+    window = params.get("window", 200)
+    if len(closes) < window:
+        return _miss("price_vs_sma", params["symbol"], params)
+    vals = [c for _, c in closes]
+    sma = statistics.fmean(vals[-window:])
+    cur = vals[-1]
+    dev = (cur - sma) / sma if sma else 0.0
+    score = math.tanh(dev * params.get("scale", 20))
+    return DriverResult("price_vs_sma", True, round(score, 4), dev,
+                        f"{params['symbol']} {dev*100:+.1f}% vs SMA{window}", params)
+
+
+@register("cot_spec_net_percentile")
+def cot_spec_net_percentile(ctx: ScoreContext, params: dict) -> DriverResult:
+    """Spekulant netto-posisjonering (long_spec − short_spec), persentil over lookback."""
+    rows = ctx.cot(params["market"])
+    lookback = params.get("lookback_weeks", 156)
+    rows = rows[-lookback:]
+    nets: list[float] = []
+    for r in rows:
+        ls, ss, oi = r["long_spec"], r["short_spec"], r["open_interest"]
+        if ls is None or ss is None:
+            continue
+        net = ls - ss
+        nets.append(net / oi if oi else net)
+    if len(nets) < 20:
+        return _miss("cot_spec_net_percentile", params["market"], params)
+    cur = nets[-1]
+    p = _percentile(nets, cur)
+    score = (2 * p - 1) * _sign(params.get("bull_when", "high"))
+    return DriverResult("cot_spec_net_percentile", True, round(score, 4), cur,
+                        f"{params['market']} spec-net p{p*100:.0f}", params)

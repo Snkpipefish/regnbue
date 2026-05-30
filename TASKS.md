@@ -24,9 +24,12 @@ Detaljer per fase i `PLAN.md §8`. Kryss av straks ferdig. **MVP = 3 instrumente
 - [x] `fetch/fred.py` lean makro-henter (FRED_API_KEY), live testet (DGS10). NB: DXY/GVZ/ENSO-fetchere
       utsatt til driverne defineres (fase 3) — de er ikke FRED i bedrock
 
-## Fase 3 — scoring
-- [ ] `score/` egen driver-registry + motor + grade + explain
-- [ ] 3 fingerprint-YAML (Gull, EURUSD, Kaffe)
+## Fase 3 — scoring ✅ FERDIG 2026-05-30
+- [x] `score/` egen driver-registry (@register) + motor + grade + explain-trace + as-of-context
+      (drivere: level_percentile, momentum, series_spread_percentile, price_vs_sma, cot_spec_net_percentile)
+- [x] 3 fingerprint-YAML (`config/instruments/`: gold, eurusd, coffee). Live-kjørt mot seedet db:
+      alle 4 drivere fyrer pr instrument, koherente traces, NEUTRAL på 2026-05-28
+- [x] logiske tester (17 grønne): as-of-vern, persentil-ekstrem, vekt-renormalisering, grade-terskler
 
 ## Fase 4 — setups + base-rate
 - [ ] `generator.py` reelle nivåer (swing/round/prior) på Skilling-koordinat (gamma: kun BTC/ETH, post-MVP)
