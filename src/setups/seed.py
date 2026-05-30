@@ -70,6 +70,49 @@ SEED_MAP: dict[str, dict] = {
         "macro_series": ["DEXBZUS", "NOAA_ONI", "IRI_ENSO_FCST_3MO"],
         "weather_regions": ["brazil_coffee", "brazil_centro_sul"],
     },
+    # --- utvidet univers (skreddersydde fingerprints, jf. config/instruments/) ---
+    # Metaller
+    "Silver": {"cot": {"types": ["disaggregated"], "contracts": ["SILVER"]},
+               "macro_series": ["DGS10", "T10YIE", "DTWEXBGS"]},
+    "Platinum": {"cot": {"types": ["disaggregated"], "contracts": ["PLATINUM"]},
+                 "macro_series": ["DGS10", "T10YIE", "DTWEXBGS"]},
+    "Copper": {"cot": {"types": ["disaggregated"], "contracts": ["COPPER"]},
+               "macro_series": ["BAMLH0A0HYM2", "DTWEXBGS"]},
+    # Energi
+    "WTI": {"cot": {"types": ["disaggregated"], "contracts": ["WTI-PHYSICAL"]},
+            "macro_series": ["OVX", "DTWEXBGS"]},
+    "Brent": {"cot": {"types": ["disaggregated"], "contracts": ["BRENT"]},
+              "macro_series": ["OVX", "DTWEXBGS"]},
+    "NatGas": {"cot": {"types": ["disaggregated"], "contracts": ["NAT GAS"]},
+               "macro_series": ["DTWEXBGS"]},
+    # Korn/softs
+    "Corn": {"cot": {"types": ["disaggregated"], "contracts": ["CORN"]},
+             "macro_series": ["DTWEXBGS", "NOAA_ONI"]},
+    "Soybean": {"cot": {"types": ["disaggregated"], "contracts": ["SOYBEANS"]},
+                "macro_series": ["DTWEXBGS", "NOAA_ONI"]},
+    "Wheat": {"cot": {"types": ["disaggregated"], "contracts": ["WHEAT-SRW"]},
+              "macro_series": ["DTWEXBGS", "NOAA_ONI"]},
+    "Sugar": {"cot": {"types": ["disaggregated"], "contracts": ["SUGAR"]},
+              "macro_series": ["DEXBZUS", "NOAA_ONI"]},
+    "Cocoa": {"cot": {"types": ["disaggregated"], "contracts": ["COCOA"]},
+              "macro_series": ["DTWEXBGS", "NOAA_ONI"]},
+    "Cotton": {"cot": {"types": ["disaggregated"], "contracts": ["COTTON"]},
+               "macro_series": ["DTWEXBGS", "NOAA_ONI"]},
+    # FX (COT-kontrakt = utenlandsk valuta vs USD; retning håndteres i fingerprintet)
+    "GBPUSD": {"cot": {"types": ["tff", "legacy"], "contracts": ["BRITISH POUND"]},
+               "macro_series": ["DGS10", "IRLTLT01GBM156N", "DTWEXBGS"]},
+    "USDJPY": {"cot": {"types": ["tff", "legacy"], "contracts": ["JAPANESE YEN"]},
+               "macro_series": ["DGS10", "IRLTLT01JPM156N", "DTWEXBGS"]},
+    "AUDUSD": {"cot": {"types": ["tff", "legacy"], "contracts": ["AUSTRALIAN DOLLAR"]},
+               "macro_series": ["DGS10", "IRLTLT01AUM156N", "DTWEXBGS"]},
+    # Indeks
+    "SP500": {"cot": {"types": ["tff", "legacy"], "contracts": ["E-MINI S&P 500"]},
+              "macro_series": ["BAMLH0A0HYM2", "VIXCLS"]},
+    # Krypto (CME COT; lite makro-relevans → pris + posisjonering)
+    "BTCUSD": {"cot": {"types": ["tff", "legacy"], "contracts": ["BITCOIN"]},
+               "macro_series": []},
+    "ETHUSD": {"cot": {"types": ["tff", "legacy"], "contracts": ["ETHER"]},
+               "macro_series": []},
 }
 
 

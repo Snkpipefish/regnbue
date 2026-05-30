@@ -107,6 +107,26 @@ def momentum(ctx: ScoreContext, params: dict) -> DriverResult:
                         params)
 
 
+@register("price_momentum")
+def price_momentum(ctx: ScoreContext, params: dict) -> DriverResult:
+    """Pris-momentum på NIVÅ-feeden (z-skåret prosentvis endring); trend-driver.
+
+    Instrument-agnostisk — komplementerer price_vs_sma (nivå vs snitt) med endrings-tempo.
+    """
+    closes = ctx.closes(params["symbol"], params.get("tf", "D1"))
+    horizon = params.get("horizon_days", 20)
+    if len(closes) < horizon + 30:
+        return _miss("price_momentum", params["symbol"], params)
+    vals = [c for _, c in closes]
+    rets = [(vals[i] - vals[i - horizon]) / vals[i - horizon] for i in range(horizon, len(vals))]
+    cur = (vals[-1] - vals[-1 - horizon]) / vals[-1 - horizon]
+    sd = statistics.pstdev(rets) or 1e-9
+    z = cur / sd
+    score = math.tanh(z) * _sign(params.get("bull_when", "high"))
+    return DriverResult("price_momentum", True, round(score, 4), cur,
+                        f"{params['symbol']} {horizon}d {cur*100:+.1f}% (z={z:+.2f})", params)
+
+
 @register("series_spread_percentile")
 def series_spread_percentile(ctx: ScoreContext, params: dict) -> DriverResult:
     """Persentil av en spread (minuend − subtrahend), f.eks. realrente el. rentediff."""
