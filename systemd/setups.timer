@@ -1,0 +1,10 @@
+[Unit]
+Description=Regnbue — kjør setups-pipeline hver 6. time
+
+[Timer]
+OnBootSec=10min
+OnUnitActiveSec=6h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -49,6 +49,8 @@ Detaljer per fase i `PLAN.md §8`. Kryss av straks ferdig. **MVP = 3 instrumente
 - [x] `web/index.html` beslutnings-UI (regnbue-tema, vanilla JS): setup-kort m/ entry/SL/T1/R:R,
       base-rate-badge (n+CI+R), driver-chips → modal, forkastede m/grunn. Visuelt verifisert (screenshot)
 
-## Fase 7 — live
-- [ ] `update.sh` + systemd-timer
-- [ ] opprett public GitHub-repo + Pages + første push
+## Fase 7 — live (pågår 2026-05-30)
+- [x] `update.sh` (flock + fersk fetch + run + commit/rebase/push kun ved endring)
+- [x] `systemd/setups.{service,timer}` (user-units, hver 6h) + `.github/workflows/pages.yml` (deploy web/)
+- [ ] opprett public GitHub-repo `regnbue` (konto Snkpipefish) + Pages + første push
+- [ ] aktiver systemd-user-timer

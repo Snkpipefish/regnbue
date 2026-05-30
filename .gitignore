@@ -30,3 +30,7 @@ secrets.env
 .vscode/
 .idea/
 .DS_Store
+
+# harness-lokalt
+.claude/scheduled_tasks.lock
+.claude/*.lock

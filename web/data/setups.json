@@ -1,35 +1,35 @@
 {
   "schema_version": 1,
-  "generated": "2026-05-30T03:43:19Z",
+  "generated": "2026-05-30T05:34:12Z",
   "as_of": "2026-05-28",
   "signals": [
     {
       "instrument": "Coffee",
       "ticker": "Coffee",
       "direction": "SHORT",
-      "grade": "NONE",
-      "score": -0.1986,
+      "grade": "A",
+      "score": -0.5383,
       "published": false,
       "entry": 272.23,
       "sl": 282.025179,
       "tp": 260,
       "rr": 1.249,
       "atr": 8.100714,
-      "reject_reason": "ingen grade (for svakt signal); R:R 1.25 < 1.5; base-rate: for få analoger (n=6 < 30); hit-rate nedre CI 44% < 55%",
+      "reject_reason": "R:R 1.25 < 1.5; base-rate: for få analoger (n=5 < 30); hit-rate nedre CI 12% < 55%; expectancy +0.20R < 0.30R; expectancy CI inkluderer ≤0 (-1.24R)",
       "base_rate": {
-        "n": 6,
-        "hit_rate": 0.8333,
+        "n": 5,
+        "hit_rate": 0.4,
         "hit_rate_ci": [
-          0.4365,
-          0.9699
+          0.1176,
+          0.7693
         ],
-        "expectancy_r": 1.5,
+        "expectancy_r": 0.2,
         "expectancy_ci": [
-          0.52,
-          2.48
+          -1.2403,
+          1.6403
         ],
         "passes": false,
-        "reason": "for få analoger (n=6 < 30); hit-rate nedre CI 44% < 55%"
+        "reason": "for få analoger (n=5 < 30); hit-rate nedre CI 12% < 55%; expectancy +0.20R < 0.30R; expectancy CI inkluderer ≤0 (-1.24R)"
       },
       "drivers": [
         {
@@ -47,8 +47,8 @@
         {
           "name": "momentum",
           "ok": true,
-          "score": 0.9155,
-          "detail": "DEXBZUS 21d-endring -0.264 (z=-1.56)"
+          "score": -0.4432,
+          "detail": "DEXBZUS 21d-endring +0.0704 (z=+0.48)"
         },
         {
           "name": "level_percentile",
@@ -61,43 +61,43 @@
     {
       "instrument": "Gold",
       "ticker": "GOLD",
-      "direction": "LONG",
+      "direction": "SHORT",
       "grade": "NONE",
-      "score": 0.0633,
+      "score": -0.0901,
       "published": false,
       "entry": 4538.02,
-      "sl": 4510.811071,
-      "tp": 4600,
-      "rr": 2.278,
+      "sl": 4575.628929,
+      "tp": 4500.6,
+      "rr": 0.995,
       "atr": 103.315714,
-      "reject_reason": "ingen grade (for svakt signal); base-rate: for få analoger (n=21 < 30); hit-rate nedre CI 21% < 55%; expectancy +0.14R < 0.30R; expectancy CI inkluderer ≤0 (-0.50R)",
+      "reject_reason": "ingen grade (for svakt signal); R:R 0.99 < 1.5; base-rate: for få analoger (n=9 < 30); hit-rate nedre CI 0% < 55%; expectancy -1.00R < 0.30R; expectancy CI inkluderer ≤0 (-1.00R)",
       "base_rate": {
-        "n": 21,
-        "hit_rate": 0.381,
+        "n": 9,
+        "hit_rate": 0.0,
         "hit_rate_ci": [
-          0.2075,
-          0.5912
+          0.0,
+          0.2992
         ],
-        "expectancy_r": 0.1429,
+        "expectancy_r": -1.0,
         "expectancy_ci": [
-          -0.4956,
-          0.7814
+          -1.0,
+          -1.0
         ],
         "passes": false,
-        "reason": "for få analoger (n=21 < 30); hit-rate nedre CI 21% < 55%; expectancy +0.14R < 0.30R; expectancy CI inkluderer ≤0 (-0.50R)"
+        "reason": "for få analoger (n=9 < 30); hit-rate nedre CI 0% < 55%; expectancy -1.00R < 0.30R; expectancy CI inkluderer ≤0 (-1.00R)"
       },
       "drivers": [
         {
           "name": "series_spread_percentile",
           "ok": true,
-          "score": -0.6968,
-          "detail": "DGS10-T10YIE = +2.1 (p85)"
+          "score": -0.5607,
+          "detail": "DGS10-T10YIE = +2.06 (p78)"
         },
         {
           "name": "momentum",
           "ok": true,
-          "score": 0.4629,
-          "detail": "DTWEXBGS 21d-endring -0.846 (z=-0.50)"
+          "score": -0.3138,
+          "detail": "DTWEXBGS 21d-endring +0.571 (z=+0.32)"
         },
         {
           "name": "cot_spec_net_percentile",
@@ -116,43 +116,43 @@
     {
       "instrument": "EURUSD",
       "ticker": "EURUSD",
-      "direction": "LONG",
+      "direction": "SHORT",
       "grade": "NONE",
-      "score": 0.0141,
+      "score": -0.0555,
       "published": false,
       "entry": 1.16574,
-      "sl": 1.164113,
-      "tp": 1.16812,
-      "rr": 1.463,
+      "sl": 1.168017,
+      "tp": 1.16174,
+      "rr": 1.757,
       "atr": 0.005386,
-      "reject_reason": "ingen grade (for svakt signal); R:R 1.46 < 1.5; base-rate: ingen historiske analoger innenfor likhetsterskel",
+      "reject_reason": "ingen grade (for svakt signal); base-rate: for få analoger (n=1 < 30); hit-rate nedre CI 0% < 55%; expectancy -1.00R < 0.30R; expectancy CI inkluderer ≤0 (-1.00R)",
       "base_rate": {
-        "n": 0,
+        "n": 1,
         "hit_rate": 0.0,
         "hit_rate_ci": [
           0.0,
-          0.0
+          0.7935
         ],
-        "expectancy_r": 0.0,
+        "expectancy_r": -1.0,
         "expectancy_ci": [
-          0.0,
-          0.0
+          -1.0,
+          -1.0
         ],
         "passes": false,
-        "reason": "ingen historiske analoger innenfor likhetsterskel"
+        "reason": "for få analoger (n=1 < 30); hit-rate nedre CI 0% < 55%; expectancy -1.00R < 0.30R; expectancy CI inkluderer ≤0 (-1.00R)"
       },
       "drivers": [
         {
           "name": "series_spread_percentile",
           "ok": true,
-          "score": -0.2128,
-          "detail": "DGS10-IRLTLT01DEM156N = +1.59 (p61)"
+          "score": 0.2023,
+          "detail": "DGS10-IRLTLT01DEM156N = +1.45 (p40)"
         },
         {
           "name": "momentum",
           "ok": true,
-          "score": 0.4629,
-          "detail": "DTWEXBGS 21d-endring -0.846 (z=-0.50)"
+          "score": -0.3138,
+          "detail": "DTWEXBGS 21d-endring +0.571 (z=+0.32)"
         },
         {
           "name": "cot_spec_net_percentile",
