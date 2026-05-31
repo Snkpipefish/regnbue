@@ -52,9 +52,7 @@ SPEC = [
     # Metaller — realrente (gull/sølv), DXY/industriell
     # (Silver håndtilpasset i config/instruments/silver.yaml — fjernet herfra.)
     # (Platinum håndtilpasset i config/instruments/platinum.yaml — fjernet herfra.)
-    ("Copper", "COPPER", "metals",
-     [macro_lvl("BAMLH0A0HYM2", 0.20, "low"), cot("Copper", 0.25), trend("COPPER", 0.30),
-      mom("COPPER", 0.25)]),
+    # (Copper håndtilpasset i config/instruments/copper.yaml — fjernet herfra.)
     # Energi
     ("WTI", "OIL WTI", "energy",
      [macro_lvl("OVX", 0.20, "low"), cot("WTI", 0.30), trend("OIL WTI", 0.25),

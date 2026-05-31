@@ -78,7 +78,7 @@ SEED_MAP: dict[str, dict] = {
     "Platinum": {"cot": {"types": ["disaggregated"], "contracts": ["PLATINUM"]},
                  "macro_series": ["DGS10", "T10YIE", "DTWEXBGS"]},
     "Copper": {"cot": {"types": ["disaggregated"], "contracts": ["COPPER"]},
-               "macro_series": ["BAMLH0A0HYM2", "DTWEXBGS"]},
+               "macro_series": ["BAMLH0A0HYM2", "DTWEXBGS", "VIXCLS"]},
     # Energi
     "WTI": {"cot": {"types": ["disaggregated"], "contracts": ["WTI-PHYSICAL"]},
             "macro_series": ["OVX", "DTWEXBGS"]},

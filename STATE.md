@@ -2,7 +2,7 @@
 
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
-**Sist oppdatert:** 2026-05-31 (gold + eurusd + coffee fundamentalt tilpasset)
+**Sist oppdatert:** 2026-05-31 (gold, eurusd, coffee, silver, platinum, copper fundamentalt tilpasset)
 **Nåværende fase:** MVP live + scenario-generator bygget. **Neste: instrument-tilpasning for resten (egne drivere pr instrument).**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
@@ -54,12 +54,18 @@ ingen setup uten statistisk støtte.
   (samme region, 0.20), BRL `momentum` (DEXBZUS, lav=bull, 0.25), COT (0.25). Fjernet `price_vs_sma` +
   tvetydig ENSO. Dyp vær hentet via Open-Meteo (`brazil_sul_minas`, 2000→, lagt i `fetch.weather` REGIONS).
   NB: Skilling-pris kun ~5 år → base-rate-gaten avviser ærlig (korrekt). Verifisert juli-2021-frost fyrer.
-- ⚠️ **18 øvrige** (silver, platinum, copper, wti, brent, natgas, corn, soybean, wheat, cocoa, cotton,
+- ✅ **silver** (2026-05-31) — realrente (DGS10−T10YIE), bred dollar, **SLV `etf_flow`** (SLV mangler tonn i
+  kilden → la til `shares_outstanding`-kolonne + COALESCE-fallback i ctx; etf_flow er skala-invariant), COT.
+- ✅ **platinum** (2026-05-31) — **`price_ratio` PLATINUM/GOLD** (ny driver: relativverdi/substitusjon,
+  mean-reversion, ikke pris-trend), COT, dollar, realrente (lav vekt). Verifisert 2025/2021 LONG, 2018/2023 SHORT.
+- ✅ **copper** (2026-05-31) — dollar, HY-kredittspread (vekst), COT, VIX. NB: pris kun 2023→, COT 2022→,
+  BAMLH0A0HYM2 leverer kun 2023→ på FRED → base-rate tynn (gaten avviser ærlig). Drivere fundamentalt riktige.
+- ⚠️ **15 øvrige** (wti, brent, natgas, corn, soybean, wheat, cocoa, cotton,
   gbpusd, usdjpy, audusd, sp500, nasdaq, btcusd, ethusd) — generisk, generert av `gen_universe_fingerprints.py`.
 
 ### Gjenbrukbare drivere (registrert i `score/drivers.py`)
 `level_percentile`, `momentum`, `price_momentum`, `series_spread_percentile`, `price_vs_sma`,
-`cot_spec_net_percentile`, `ethanol_parity`, `series_ratio`, `rainfall_anomaly`, `etf_flow`, `frost_anomaly`. Lag nye ved behov med `@register`.
+`cot_spec_net_percentile`, `ethanol_parity`, `series_ratio`, `rainfall_anomaly`, `etf_flow`, `frost_anomaly`, `price_ratio`. Lag nye ved behov med `@register`.
 
 ---
 

@@ -75,7 +75,9 @@ Se playbook i `STATE.md`. Pr instrument: research → skaff dyp data → hånd-s
 - [x] **coffee** — frost (`frost_anomaly`, ny driver, Sul de Minas kaldeste natt m/abs-gate),
       nedbør-anomali (dyp Open-Meteo 2000→), BRL (DEXBZUS), COT. Fjernet `price_vs_sma` + tvetydig ENSO.
       Verifisert: juli-2021-frosten fyrer (3.2°C, z=-2.76); sommer-kjøling gated til 0. Skilling-pris kun ~5 år.
-- [ ] silver, platinum, copper
+- [x] **silver** — realrente, bred dollar, SLV ETF-flyt (via shares_outstanding-fallback), COT.
+- [x] **platinum** — platina/gull-relativverdi (ny `price_ratio`-driver), COT, dollar, realrente (lav vekt).
+- [x] **copper** — dollar, HY-kredittspread (vekst), COT, VIX risk-sentiment. NB data tynn (pris 2023→).
 - [ ] wti, brent, natgas
 - [ ] corn, soybean, wheat, cocoa, cotton
 - [ ] gbpusd, usdjpy, audusd
