@@ -2,7 +2,7 @@
 
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
-**Sist oppdatert:** 2026-05-31
+**Sist oppdatert:** 2026-05-31 (gold fundamentalt tilpasset)
 **Nåværende fase:** MVP live + scenario-generator bygget. **Neste: instrument-tilpasning for resten (egne drivere pr instrument).**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
@@ -41,13 +41,17 @@ ingen setup uten statistisk støtte.
 - ✅ **Sugar** — ferdig som PROSESS-EKSEMPEL (ikke driver-mal). Sukker-unike drivere: `series_ratio`
   (WTI÷IMF-sukker = etanol-incentiv), `rainfall_anomaly` (Brasil C-S), ENSO, BRL, COT, UNICA-mix. Andre
   instrumenter får helt andre drivere.
-- ⚠️ **gold, eurusd, coffee** — håndskrevet men fortsatt semi-generisk (bruker price_vs_sma o.l.). Bør tilpasses ordentlig.
+- ✅ **gold** (2026-05-31) — fundamentalt tilpasset, generisk pris-trend fjernet. Gull-unike drivere:
+  realrente `series_spread_percentile` (DGS10−T10YIE, lav=bull, 0.35), bred dollar `momentum` (DTWEXBGS, 0.20),
+  **`etf_flow`** (ny driver: GLD tonnes-in-trust flyt, inn=bull, 0.25), COT (0.20). GLD-data dyp (2004→).
+  Verifisert: 2020-08 LONG / 2022-09 SHORT / 2018-06 SHORT — koherent med faktiske vendepunkter.
+- ⚠️ **eurusd, coffee** — håndskrevet men fortsatt semi-generisk (bruker price_vs_sma o.l.). Bør tilpasses ordentlig.
 - ⚠️ **18 øvrige** (silver, platinum, copper, wti, brent, natgas, corn, soybean, wheat, cocoa, cotton,
   gbpusd, usdjpy, audusd, sp500, nasdaq, btcusd, ethusd) — generisk, generert av `gen_universe_fingerprints.py`.
 
 ### Gjenbrukbare drivere (registrert i `score/drivers.py`)
 `level_percentile`, `momentum`, `price_momentum`, `series_spread_percentile`, `price_vs_sma`,
-`cot_spec_net_percentile`, `ethanol_parity`, `series_ratio`, `rainfall_anomaly`. Lag nye ved behov med `@register`.
+`cot_spec_net_percentile`, `ethanol_parity`, `series_ratio`, `rainfall_anomaly`, `etf_flow`. Lag nye ved behov med `@register`.
 
 ---
 

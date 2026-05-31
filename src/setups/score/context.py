@@ -55,6 +55,16 @@ class ScoreContext:
         ).fetchall()
         return [(r[0], r[1]) for r in rows]
 
+    # --- ETF-beholdning (fysisk investerings-flyt) ---
+    def etf_holdings(self, ticker: str) -> list[tuple[str, float]]:
+        """(dato, tonnes_in_trust) stigende, kun t.o.m. as_of."""
+        rows = self.conn.execute(
+            "SELECT date, tonnes_in_trust FROM etf_holdings "
+            "WHERE ticker=? AND date<=? AND tonnes_in_trust IS NOT NULL ORDER BY date",
+            (ticker, self.as_of),
+        ).fetchall()
+        return [(r[0], r[1]) for r in rows]
+
     # --- vær (nedbør) ---
     def weather_precip(self, region: str) -> list[tuple[str, float]]:
         rows = self.conn.execute(

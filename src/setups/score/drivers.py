@@ -240,6 +240,33 @@ def ethanol_parity(ctx: ScoreContext, params: dict) -> DriverResult:
                         f"etanol/sukker z={z:+.2f}", params)
 
 
+@register("etf_flow")
+def etf_flow(ctx: ScoreContext, params: dict) -> DriverResult:
+    """Fysisk investerings-flyt: z-skåret endring i ETF-beholdning (tonn) over et vindu.
+
+    For gull/sølv er ETF-beholdning (f.eks. GLD tonnes-in-trust) en direkte fysisk
+    etterspørsels-flyt: stigende beholdning = inn-flyt fra investorer = bullish (bull_when
+    high). Prosentvis endring over horisonten z-skåres mot egen historikk. Egen, frisk
+    implementasjon (gjenbruk av bedrock-data, ikke kode).
+    """
+    series = ctx.etf_holdings(params["ticker"])
+    horizon = params.get("horizon_days", 63)
+    if len(series) < horizon + 30:
+        return _miss("etf_flow", params["ticker"], params)
+    vals = [v for _, v in series]
+    rets = [(vals[i] - vals[i - horizon]) / vals[i - horizon]
+            for i in range(horizon, len(vals)) if vals[i - horizon]]
+    if vals[-1 - horizon] <= 0 or len(rets) < 20:
+        return _miss("etf_flow", "for kort/ugyldig overlapp", params)
+    cur = (vals[-1] - vals[-1 - horizon]) / vals[-1 - horizon]
+    sd = statistics.pstdev(rets) or 1e-9
+    z = cur / sd
+    score = math.tanh(z) * _sign(params.get("bull_when", "high"))
+    return DriverResult("etf_flow", True, round(score, 4), round(cur, 4),
+                        f"{params['ticker']} {horizon}d-beholdning {cur*100:+.1f}% (z={z:+.2f})",
+                        params)
+
+
 @register("rainfall_anomaly")
 def rainfall_anomaly(ctx: ScoreContext, params: dict) -> DriverResult:
     """Sesongjustert nedbør-anomali; BEGGE ekstremer = bullish (ikke-monoton).

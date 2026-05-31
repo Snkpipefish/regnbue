@@ -68,7 +68,9 @@ Detaljer per fase i `PLAN.md §8`. Kryss av straks ferdig. **MVP = 3 instrumente
 Se playbook i `STATE.md`. Pr instrument: research → skaff dyp data → hånd-skriv fundamentalt fingerprint
 (fjern fra `gen_universe_fingerprints.py`) → verifiser scoring → ev. scenario/kalibrering.
 - [x] **Sugar** — ferdig mal (series_ratio energi/sukker, rainfall_anomaly, ENSO, BRL, COT, UNICA)
-- [ ] gold, eurusd, coffee — tilpass ordentlig (i dag semi-generisk)
+- [x] **gold** — realrente (DGS10−T10YIE), bred dollar (DTWEXBGS), **GLD ETF-flyt (ny `etf_flow`-driver)**, COT.
+      Fjernet generisk `price_vs_sma`. Verifisert: 2020/2022/2018-vendepunkter koherente. 40 tester grønne.
+- [ ] eurusd, coffee — tilpass ordentlig (i dag semi-generisk)
 - [ ] silver, platinum, copper
 - [ ] wti, brent, natgas
 - [ ] corn, soybean, wheat, cocoa, cotton

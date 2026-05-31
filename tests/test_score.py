@@ -10,6 +10,7 @@ from setups import store
 from setups.score.context import ScoreContext
 from setups.score.drivers import (
     cot_spec_net_percentile,
+    etf_flow,
     price_vs_sma,
     series_spread_percentile,
 )
@@ -69,6 +70,33 @@ def test_cot_spec_net_percentile_extreme_long(conn):
     res = cot_spec_net_percentile(ctx, {"market": "Gold", "lookback_weeks": 156,
                                          "bull_when": "high"})
     assert res.ok and res.score > 0.9  # høyeste net på hele lookback → p≈1
+
+
+def test_etf_flow_inflow_is_bullish(conn):
+    # ETF-beholdning stiger jevnt → siste vindus-endring positiv → bullish (bull_when high).
+    dates = _days(120)
+    for i, d in enumerate(dates):
+        conn.execute(
+            "INSERT INTO etf_holdings(ticker,date,tonnes_in_trust) VALUES (?,?,?)",
+            ("gld", d, 800.0 + i * 2.0),  # monoton inn-flyt
+        )
+    ctx = ScoreContext(conn, as_of=dates[-1])
+    res = etf_flow(ctx, {"ticker": "gld", "horizon_days": 63, "bull_when": "high"})
+    assert res.ok and res.score > 0.0
+
+
+def test_etf_flow_excludes_future(conn):
+    # Beholdning flat; en framtidig dag spretter opp. as_of FØR den → ikke bullish av spretten.
+    dates = _days(120)
+    for i, d in enumerate(dates):
+        val = 800.0 if i < 119 else 1200.0
+        conn.execute(
+            "INSERT INTO etf_holdings(ticker,date,tonnes_in_trust) VALUES (?,?,?)",
+            ("gld", d, val),
+        )
+    ctx = ScoreContext(conn, as_of=dates[100])  # ser ikke sluttspretten
+    res = etf_flow(ctx, {"ticker": "gld", "horizon_days": 63, "bull_when": "high"})
+    assert res.ok and abs(res.score) < 0.05
 
 
 def test_spread_percentile_low_is_bullish(conn):
