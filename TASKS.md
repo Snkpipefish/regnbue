@@ -55,3 +55,23 @@ Detaljer per fase i `PLAN.md §8`. Kryss av straks ferdig. **MVP = 3 instrumente
 - [x] public repo **github.com/Snkpipefish/regnbue** opprettet + pushet; Pages live (Actions-deploy)
 - [x] systemd-user-timer aktivert (linger på) — kjørte første runde OK via timeren
 - **LIVE:** https://snkpipefish.github.io/regnbue/ (index 200, data/setups.json 200)
+- **NB (2026-05-31): timeren er nå DEAKTIVERT** (ressurssparing). Re-aktiver ved behov.
+
+## Etter-MVP — scenario-generator ✅ FERDIG 2026-05-31
+- [x] `scenario.py` FHS (EWMA-vol + block bootstrap) + CRPS/PIT-kalibrering + residual-klipp
+- [x] `scenario_fm.py` Chronos-utfordrer (zero-shot, valgfri `[fm]`) + `scenario_arbitrate.py` ruting
+- [x] Chronos vinner 20/22 på OOS-CRPS → `web/data/scenario_models.json`
+- [x] `clean.py` reparerer skala-glitcher (50 SPX500-barer), koblet inn i `update.sh`
+- [x] 22 instrumenter med pris/COT/makro seedet; tester 38 grønne
+
+## NESTE: instrument-tilpasning (sukker-metoden) — ett om gangen
+Se playbook i `STATE.md`. Pr instrument: research → skaff dyp data → hånd-skriv fundamentalt fingerprint
+(fjern fra `gen_universe_fingerprints.py`) → verifiser scoring → ev. scenario/kalibrering.
+- [x] **Sugar** — ferdig mal (series_ratio energi/sukker, rainfall_anomaly, ENSO, BRL, COT, UNICA)
+- [ ] gold, eurusd, coffee — tilpass ordentlig (i dag semi-generisk)
+- [ ] silver, platinum, copper
+- [ ] wti, brent, natgas
+- [ ] corn, soybean, wheat, cocoa, cotton
+- [ ] gbpusd, usdjpy, audusd
+- [ ] sp500, nasdaq
+- [ ] btcusd, ethusd

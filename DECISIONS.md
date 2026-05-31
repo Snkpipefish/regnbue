@@ -62,6 +62,21 @@ Endres bare ved bevisst ny beslutning. Format: dato — valg — kort begrunnels
   gaten publiserer korrekt 0. Tesen er IKKE bevist ennå. Neste = bedre prediktive drivere (forsknings-
   /retningsvalg for brukeren), IKKE terskel-/likhet-tuning (ville vært p-hacking på OOS).
 
+- **2026-05-31 — Instrument-tilpasning rendyrkes fundamentalt:** hvert instrument får hånd-skrevne,
+  instrument-spesifikke fundamentale drivere (sukker = mal), ingen generisk pris-trend. Hånd-tilpassede
+  fingerprints fjernes fra `gen_universe_fingerprints.py` så de ikke overskrives. Data gjenbrukes/seedes
+  fra bedrock + hentes ferskt (FRED/Open-Meteo); foretrekk DYPE serier. Avledede dype proxyer der direkte
+  data er grunt (sukker: WTI÷IMF-sukker via `series_ratio` i stedet for grunn ANP-paritet).
+- **2026-05-31 — Datavask:** `clean.py` reparerer 10er-potens skala-glitcher (sekvensiell mot etterslepende
+  median av korrigerte closes). Kjøres etter henting i `update.sh`. Fikset 50 SPX500-barer.
+- **2026-05-31 — Scenario-generator = det ærlige forward-produktet:** FHS (vol-filtrert block bootstrap),
+  evaluert med CRPS+PIT. Foundation-modell (Chronos) er **gated utfordrer** — tas i bruk pr instrument kun
+  der den slår FHS på OOS-CRPS (kalibrerings-arbitrasje). Chronos vant 20/22. `[fm]`-extra (torch) er valgfri.
+- **2026-05-31 — ÆRLIG: fundamentale scorer forutsier ikke forward-retning** (kalibrering flat/invertert,
+  30–120d). Retnings-«setups» har ingen påvist edge. Ikke tving publisering. Reell verdi = scenario-fordeling
+  + (diversifisert) trendfølging. systemd-timeren deaktivert (ressurssparing).
+
 ## Uavklart (ikke låst ennå)
-- Panel-ytelse (~55s/instr) — caching/vektorisering ved behov.
-- Hvilke nye drivere kan gi ekte prediktiv verdi? (krever brukerens retning før mer arbeid)
+- Bør scenario-fordelingen erstatte «setups» som hovedprodukt i UI-et?
+- Kovariat-betinget foundation-modell (Moirai) — utsatt; vårt bevis tilsier liten gevinst.
+- Panel-ytelse (~55s/instr); full historikk vs train-panel som naboer.
