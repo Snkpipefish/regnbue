@@ -2,7 +2,7 @@
 
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
-**Sist oppdatert:** 2026-05-31 (9 instr fundamentalt tilpasset: + energi wti/brent/natgas)
+**Sist oppdatert:** 2026-05-31 (14 instr tilpasset: + korn/softs corn/soybean/wheat/cocoa/cotton)
 **Nåværende fase:** MVP live + scenario-generator bygget. **Neste: instrument-tilpasning for resten (egne drivere pr instrument).**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
@@ -64,8 +64,12 @@ ingen setup uten statistisk støtte.
   (ny EIA-fetcher `fetch.eia`), COT, dollar, OVX. Brent-COT grunn (2022→) → renormaliserer pent til NA.
 - ✅ **natgas** (2026-05-31) — `seasonal_anomaly` EIA gass-lager (NG_STOR_L48) + `degree_days_anomaly`
   (ny driver: vær-drevet etterspørsel, Chicago us_gas_demand 2005→), COT. Pris kun 2019→ (tynn base-rate).
-- ⚠️ **12 øvrige** (corn, soybean, wheat, cocoa, cotton,
-  gbpusd, usdjpy, audusd, sp500, nasdaq, btcusd, ethusd) — generisk, generert av `gen_universe_fingerprints.py`.
+- ✅ **corn/soybean/wheat/cotton** (2026-05-31) — US-vekstsesong-vær (ny `active_months`-gate på
+  `rainfall_anomaly` så bare vekstsesongen teller), dollar (eksport), COT. Corn har i tillegg etanol/olje
+  (DCOILWTICO). Dyp Open-Meteo for us_cornbelt/us_wheat_plains/us_cotton (2000→).
+- ✅ **cocoa** (2026-05-31) — Vest-Afrika-vær (west_africa_cocoa, 2000→), ENSO (El Niño=bull), COT.
+  Fanger 2023–24 supply-krisen (LONG A). NB grain/softs Skilling-pris kun 2021→ → base-rate tynn.
+- ⚠️ **7 øvrige** (gbpusd, usdjpy, audusd, sp500, nasdaq, btcusd, ethusd) — generisk, gen_universe_fingerprints.py.
 
 ### Gjenbrukbare drivere (registrert i `score/drivers.py`)
 `level_percentile`, `momentum`, `price_momentum`, `series_spread_percentile`, `price_vs_sma`,

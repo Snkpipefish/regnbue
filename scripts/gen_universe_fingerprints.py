@@ -54,21 +54,7 @@ SPEC = [
     # (Platinum håndtilpasset i config/instruments/platinum.yaml — fjernet herfra.)
     # (Copper håndtilpasset i config/instruments/copper.yaml — fjernet herfra.)
     # Energi (WTI/Brent/NatGas håndtilpasset i config/instruments/ — fjernet herfra.)
-    # Korn/softs
-    ("Corn", "Corn", "grains",
-     [macro_mom("DTWEXBGS", 0.20, "low"), cot("Corn", 0.30), trend("Corn", 0.30),
-      mom("Corn", 0.20)]),
-    ("Soybean", "Soybean", "grains",
-     [macro_mom("DTWEXBGS", 0.20, "low"), cot("Soybean", 0.30), trend("Soybean", 0.30),
-      mom("Soybean", 0.20)]),
-    ("Wheat", "Wheat", "grains",
-     [macro_mom("DTWEXBGS", 0.20, "low"), cot("Wheat", 0.30), trend("Wheat", 0.30),
-      mom("Wheat", 0.20)]),
-    ("Cocoa", "Cocoa", "softs",
-     [cot("Cocoa", 0.35), trend("Cocoa", 0.35), mom("Cocoa", 0.30)]),
-    ("Cotton", "Cotton", "softs",
-     [macro_mom("DTWEXBGS", 0.20, "low"), cot("Cotton", 0.30), trend("Cotton", 0.30),
-      mom("Cotton", 0.20)]),
+    # Korn/softs (Corn/Soybean/Wheat/Cocoa/Cotton håndtilpasset i config/instruments/ — fjernet herfra.)
     # FX — rentediff + DXY. NB COT-retning og diff-fortegn avhenger av base-valuta:
     #   *USD-par (EUR/GBP/AUD): sterk USD = par NED → bull_when low; COT long utenl. = bull par.
     #   USDJPY (USD-base): sterk USD = par OPP → bull_when high; COT long JPY = bear par → low.

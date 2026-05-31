@@ -1,37 +1,26 @@
+# Hvete (CBOT SRW) — håndtilpasset, fundamentalt (ingen generisk pris-trend).
+# Årsakskjede: hvete drives av vær i dyrkingsbeltet (US-sletter / vinterhvete fyllingsfase
+# apr–jun), eksport-konkurranseevne (dollar) og posisjonering.
+#   1) Sletteland-vær (apr–jun): tørke i fyllingsfasen = tilbudssjokk = bullish.
+#   2) Bred dollar: sterk USD = US-hvete mindre konkurransedyktig på eksport = bearish.
+#   3) Spekulant-posisjonering (CBOT SRW Wheat): trend-bekreftende.
+# NB: Svartehavet (Russland/Ukraina) er den store globale svingfaktoren men mangler dyp serie → utelatt.
 id: Wheat
 ticker: Wheat
 asset_class: grains
 drivers:
-- name: momentum
-  weight: 0.2
-  params:
-    series: DTWEXBGS
-    horizon_days: 21
-    bull_when: low
-- name: cot_spec_net_percentile
-  weight: 0.3
-  params:
-    market: Wheat
-    lookback_weeks: 156
-    bull_when: high
-- name: price_vs_sma
-  weight: 0.3
-  params:
-    symbol: Wheat
-    window: 200
-    tf: D1
-- name: price_momentum
-  weight: 0.2
-  params:
-    symbol: Wheat
-    horizon_days: 20
-grade_thresholds:
-  A_plus: 0.55
-  A: 0.4
-  B: 0.25
-base_rate:
-  horizon_days: 30
-  band: 0.1
-  min_effective_n: 30
-  min_hit_rate_pct: 55
-  min_expectancy_r: 0.3
+  # Sletteland-nedbør (begge ekstremer), KUN fyllings-/dyrkingssesong (apr–jun). Dyp (2000→).
+  - name: rainfall_anomaly
+    weight: 0.40
+    params: {region: us_wheat_plains, window_days: 30, active_months: [4, 5, 6]}
+  # Bred handelsvektet dollar opp = svakere eksport = bearish (bull_when low). Dyp (2006→).
+  - name: momentum
+    weight: 0.30
+    params: {series: DTWEXBGS, horizon_days: 21, bull_when: low}
+  # Spekulant netto-posisjonering (CBOT SRW Wheat), trend-bekreftende. Dyp (2010→).
+  - name: cot_spec_net_percentile
+    weight: 0.30
+    params: {market: Wheat, lookback_weeks: 156, bull_when: high}
+grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
+base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
+            min_hit_rate_pct: 55, min_expectancy_r: 0.3}

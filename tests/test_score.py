@@ -15,6 +15,7 @@ from setups.score.drivers import (
     frost_anomaly,
     price_ratio,
     price_vs_sma,
+    rainfall_anomaly,
     seasonal_anomaly,
     series_spread_percentile,
 )
@@ -194,6 +195,38 @@ def test_degree_days_anomaly_extreme_cold_is_bullish(conn):
     res = degree_days_anomaly(
         ctx, {"region": "us_gas_demand", "window_days": 14, "comfort_base_c": 18.0})
     assert res.ok and res.score > 0.3  # ekstrem kulde = etterspørsel = bullish
+
+
+def _seed_drought_precip(conn, region):
+    """Daglig nedbør (normal ~6/dag); siste 30 dager helt tørre. Returnerer slutt-dato."""
+    d0 = date.fromisoformat("2018-01-01")
+    n = 365 * 5
+    last = d0
+    for i in range(n):
+        d = d0 + timedelta(days=i)
+        precip = 0.0 if i >= n - 30 else 6.0  # siste måned: tørke
+        conn.execute("INSERT OR REPLACE INTO weather(region,date,precip) VALUES (?,?,?)",
+                     (region, d.isoformat(), precip))
+        last = d
+    return last.isoformat()
+
+
+def test_rainfall_anomaly_drought_in_season_fires(conn):
+    last = _seed_drought_precip(conn, "us_cornbelt")
+    m = int(last[5:7])  # sluttmåneden = aktiv → tørke fyrer
+    ctx = ScoreContext(conn, as_of=last)
+    res = rainfall_anomaly(ctx, {"region": "us_cornbelt", "window_days": 30, "active_months": [m]})
+    assert res.ok and res.score > 0.0  # tørke i vekstsesong → bullish
+
+
+def test_rainfall_anomaly_gated_out_of_season(conn):
+    last = _seed_drought_precip(conn, "us_cornbelt")
+    m = int(last[5:7])
+    other = (m % 12) + 1  # en annen måned enn slutt-måneden
+    ctx = ScoreContext(conn, as_of=last)
+    res = rainfall_anomaly(ctx, {"region": "us_cornbelt", "window_days": 30,
+                                 "active_months": [other]})
+    assert res.ok and res.score == 0.0  # utenfor sesong → ingen signal
 
 
 def test_spread_percentile_low_is_bullish(conn):

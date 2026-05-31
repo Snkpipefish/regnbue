@@ -19,10 +19,16 @@ ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
 # Representative punkter pr region. Brasil Center-South cane: Ribeirão Preto (SP).
 # Sul de Minas (Varginha): arabica-hjertet, frost-utsatt (austral vinter jun–aug → geada).
 # us_gas_demand: Chicago (Midwest) som oppvarmings-tung proxy for US gass-etterspørsel.
+# Avlings-regioner: kornbelte (Des Moines IA), hvete-sletter (Wichita KS),
+# Vest-Afrika kakao (Daloa, Elfenbenskysten), US bomull (Lubbock TX).
 REGIONS: dict[str, tuple[float, float]] = {
     "brazil_cs_cane": (-21.17, -47.81),
     "brazil_sul_minas": (-21.55, -45.43),
     "us_gas_demand": (41.85, -87.65),
+    "us_cornbelt": (41.59, -93.62),
+    "us_wheat_plains": (37.69, -97.34),
+    "west_africa_cocoa": (6.88, -6.45),
+    "us_cotton": (33.58, -101.86),
 }
 
 

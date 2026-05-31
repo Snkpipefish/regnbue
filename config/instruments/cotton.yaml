@@ -1,37 +1,25 @@
+# Bomull — håndtilpasset, fundamentalt (ingen generisk pris-trend).
+# Årsakskjede: bomull drives av vær i US-bomullsbeltet (Vest-Texas tørke), eksport-etterspørsel
+# (dollar; Kina = stor kjøper) og posisjonering. Bomull er også industriell (tekstil-etterspørsel).
+#   1) US-bomullsbelte-vær (jun–sep): Texas-tørke i vekstsesong = tilbudssjokk = bullish.
+#   2) Bred dollar: sterk USD = US-bomull mindre konkurransedyktig på eksport = bearish.
+#   3) Spekulant-posisjonering (ICE Cotton): trend-bekreftende.
 id: Cotton
 ticker: Cotton
 asset_class: softs
 drivers:
-- name: momentum
-  weight: 0.2
-  params:
-    series: DTWEXBGS
-    horizon_days: 21
-    bull_when: low
-- name: cot_spec_net_percentile
-  weight: 0.3
-  params:
-    market: Cotton
-    lookback_weeks: 156
-    bull_when: high
-- name: price_vs_sma
-  weight: 0.3
-  params:
-    symbol: Cotton
-    window: 200
-    tf: D1
-- name: price_momentum
-  weight: 0.2
-  params:
-    symbol: Cotton
-    horizon_days: 20
-grade_thresholds:
-  A_plus: 0.55
-  A: 0.4
-  B: 0.25
-base_rate:
-  horizon_days: 30
-  band: 0.1
-  min_effective_n: 30
-  min_hit_rate_pct: 55
-  min_expectancy_r: 0.3
+  # Bomullsbelte-nedbør (begge ekstremer), KUN vekstsesong (jun–sep). Dyp (2000→).
+  - name: rainfall_anomaly
+    weight: 0.40
+    params: {region: us_cotton, window_days: 30, active_months: [6, 7, 8, 9]}
+  # Bred handelsvektet dollar opp = svakere eksport = bearish (bull_when low). Dyp (2006→).
+  - name: momentum
+    weight: 0.30
+    params: {series: DTWEXBGS, horizon_days: 21, bull_when: low}
+  # Spekulant netto-posisjonering (ICE Cotton), trend-bekreftende. Dyp (2010→).
+  - name: cot_spec_net_percentile
+    weight: 0.30
+    params: {market: Cotton, lookback_weeks: 156, bull_when: high}
+grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
+base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
+            min_hit_rate_pct: 55, min_expectancy_r: 0.3}

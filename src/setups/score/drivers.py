@@ -315,6 +315,10 @@ def rainfall_anomaly(ctx: ScoreContext, params: dict) -> DriverResult:
     z = (cur_sum - mean) / sd
     # |z|<1 (normalt) → negativt (bearish); |z|>1 (tørke ELLER styrtregn) → positivt (bullish).
     score = math.tanh(abs(z) - 1.0)
+    # Valgfri vekstsesong-gate: utenfor de aktive månedene betyr vær lite → ingen signal.
+    active = params.get("active_months")
+    if active and int(ctx.as_of[5:7]) not in active:
+        score = 0.0
     kind = "tørt" if z < 0 else "vått"
     return DriverResult("rainfall_anomaly", True, round(score, 4), round(z, 3),
                         f"{region} {win}d-nedbør {kind} z={z:+.2f}", params)

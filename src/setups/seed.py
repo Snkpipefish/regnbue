@@ -88,7 +88,7 @@ SEED_MAP: dict[str, dict] = {
                "macro_series": ["DTWEXBGS"]},
     # Korn/softs
     "Corn": {"cot": {"types": ["disaggregated"], "contracts": ["CORN"]},
-             "macro_series": ["DTWEXBGS", "NOAA_ONI"]},
+             "macro_series": ["DTWEXBGS", "NOAA_ONI", "DCOILWTICO"]},  # WTI = etanol-incentiv
     "Soybean": {"cot": {"types": ["disaggregated"], "contracts": ["SOYBEANS"]},
                 "macro_series": ["DTWEXBGS", "NOAA_ONI"]},
     "Wheat": {"cot": {"types": ["disaggregated"], "contracts": ["WHEAT-SRW"]},

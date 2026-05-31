@@ -1,31 +1,26 @@
+# Kakao — håndtilpasset, fundamentalt (ingen generisk pris-trend).
+# Årsakskjede (research 2026-05): kakao drives av Vest-Afrika-vær (Elfenbenskysten + Ghana =
+# ~60% av tilbud), der BÅDE styrtregn (black pod-sykdom, råte) og tørke (El Niño) skader avlingen,
+# pluss strukturelt underskudd (swollen shoot-virus, gamle trær) og posisjonering.
+#   1) Vest-Afrika-vær: begge ekstremer = tilbudssjokk = bullish (sykdom ved regn / tørke ved El Niño).
+#   2) ENSO (NOAA ONI): El Niño (varm/høy) → tørke Vest-Afrika → bullish.
+#   3) Spekulant-posisjonering (ICE Cocoa): trend-bekreftende.
 id: Cocoa
 ticker: Cocoa
 asset_class: softs
 drivers:
-- name: cot_spec_net_percentile
-  weight: 0.35
-  params:
-    market: Cocoa
-    lookback_weeks: 156
-    bull_when: high
-- name: price_vs_sma
-  weight: 0.35
-  params:
-    symbol: Cocoa
-    window: 200
-    tf: D1
-- name: price_momentum
-  weight: 0.3
-  params:
-    symbol: Cocoa
-    horizon_days: 20
-grade_thresholds:
-  A_plus: 0.55
-  A: 0.4
-  B: 0.25
-base_rate:
-  horizon_days: 30
-  band: 0.1
-  min_effective_n: 30
-  min_hit_rate_pct: 55
-  min_expectancy_r: 0.3
+  # Vest-Afrika-nedbør (begge ekstremer = sykdom/tørke = tilbudssjokk). Dyp (2000→).
+  - name: rainfall_anomaly
+    weight: 0.40
+    params: {region: west_africa_cocoa, window_days: 30}
+  # ENSO (NOAA ONI): El Niño → tørke Vest-Afrika → bullish (bull_when high). Dyp (1950→).
+  - name: level_percentile
+    weight: 0.25
+    params: {series: NOAA_ONI, lookback_days: 1825, bull_when: high}
+  # Spekulant netto-posisjonering (ICE Cocoa), trend-bekreftende. Dyp (2010→).
+  - name: cot_spec_net_percentile
+    weight: 0.35
+    params: {market: Cocoa, lookback_weeks: 156, bull_when: high}
+grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
+base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
+            min_hit_rate_pct: 55, min_expectancy_r: 0.3}

@@ -82,7 +82,12 @@ Se playbook i `STATE.md`. Pr instrument: research → skaff dyp data → hånd-s
 - [x] **brent** — samme som WTI (US-lager som global-proxy); Brent-COT grunn (2022→), renormaliserer pent.
 - [x] **natgas** — EIA gass-lager vs sesong-norm + degree-days vær-etterspørsel (ny `degree_days_anomaly`,
       dyp Chicago-vær), COT. NB pris kun 2019→. Verifisert: 2024-02 SHORT A+ (mild vinter + glut).
-- [ ] corn, soybean, wheat, cocoa, cotton
+- [x] **corn** — kornbelte-vær (sesong-gated mai–sep), etanol/olje (DCOILWTICO), dollar, COT.
+- [x] **soybean** — kornbelte-vær (jun–sep), dollar, COT.
+- [x] **wheat** — sletteland-vær (apr–jun), dollar, COT.
+- [x] **cocoa** — Vest-Afrika-vær, ENSO (El Niño=bull), COT. Fanger 2023–24 supply-krisen (LONG A).
+- [x] **cotton** — bomullsbelte-vær (jun–sep), dollar, COT.
+  Ny `active_months`-sesong-gate på rainfall_anomaly; dyp Open-Meteo for 4 nye avlings-regioner.
 - [ ] gbpusd, usdjpy, audusd
 - [ ] sp500, nasdaq
 - [ ] btcusd, ethusd
