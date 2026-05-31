@@ -16,6 +16,9 @@ from setups.generator import build_setup
 from setups.outcomes import build_panel
 from setups.score.engine import load_fingerprint
 
+# Sampling-tetthet for base-rate-panelet (hver N. handledag). Ytelse, ikke terskel-tuning.
+PANEL_STEP = 10
+
 
 def _all_fingerprints() -> list[str]:
     from setups.score.engine import FINGERPRINT_DIR
@@ -42,9 +45,13 @@ def run(db_path=store.DEFAULT_DB_PATH, fingerprints: list[str] | None = None,
                 continue
             resolved_as_of = max(resolved_as_of or day, day)
             br = fp.get("base_rate", {})
-            # Panel bygges én gang pr instrument (tregt: re-scorer pr dato).
+            # Panel bygges én gang pr instrument (tregt: re-scorer pr dato). Vi sampler
+            # beslutnings-datoer hver PANEL_STEP. dag — en ren ytelses-optimalisering (ikke
+            # terskel-tuning): analog-tellingen holder n≥30 innen score-båndet, og gaten
+            # avviser uansett ærlig de tynne. Vær-driverne er tunge pr kall, så dette holder
+            # publiserings-kjøringen håndterbar (~minutter, ikke ~time) for alle 22 instrumenter.
             panel = build_panel(conn, fp, horizon=br.get("horizon_days", 30),
-                                oos_start=br.get("oos_start"))
+                                oos_start=br.get("oos_start"), step=PANEL_STEP)
             setup = build_setup(conn, fp, day, panel=panel)
             if setup is not None:
                 setups.append(setup)
