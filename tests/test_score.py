@@ -63,6 +63,23 @@ def test_as_of_excludes_future(conn):
     assert abs(res.score) < 0.05
 
 
+def test_macro_cache_lookahead_and_invalidation(conn):
+    # Data-laget cacher full makro-serie; et score ≤D må ikke endres av verdier lagt til
+    # ETTER D, og cachen må re-nøkles når data endres (verdi-signatur).
+    from setups.score.drivers import momentum
+    dates = _days(80)
+    for i, d in enumerate(dates):
+        conn.execute("INSERT OR REPLACE INTO macro_series VALUES (?,?,?)",
+                     ("DGS2", d, 2.0 + i * 0.01))
+    cut = dates[60]
+    before = momentum(ScoreContext(conn, as_of=cut), {"series": "DGS2", "horizon_days": 21}).score
+    # Overskriv kun datoer STRENGT etter cut med kraftig hopp (cut selv er synlig ved as_of).
+    for i, d in enumerate(dates[61:], start=61):
+        conn.execute("INSERT OR REPLACE INTO macro_series VALUES (?,?,?)", ("DGS2", d, 99.0 + i))
+    after = momentum(ScoreContext(conn, as_of=cut), {"series": "DGS2", "horizon_days": 21}).score
+    assert before == after  # framtids-data lekker ikke inn (cachen re-nøkles på verdi-signatur)
+
+
 def test_cot_spec_net_percentile_extreme_long(conn):
     dates = _days(25)
     for i, d in enumerate(dates):

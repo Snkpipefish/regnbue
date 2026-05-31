@@ -124,8 +124,11 @@ def _cached_weather_roll(conn, region: str, kind: str, window: int,
     |døgnmiddel−base|-sum). Identiske rad-filtre som ScoreContext-aksessorene, så indeksene
     matcher en ≤as_of-spørring eksakt.
     """
+    # Signaturen inkluderer verdi-sjekksummer så to datasett med samme antall/datospenn men
+    # ulike verdier (typisk i tester) aldri deler cache-nøkkel.
     sig = conn.execute(
-        "SELECT COUNT(*), MIN(date), MAX(date) FROM weather WHERE region=?", (region,)
+        "SELECT COUNT(*), MIN(date), MAX(date), SUM(COALESCE(precip,0)), "
+        "SUM(COALESCE(tmin,0)), SUM(COALESCE(tmax,0)) FROM weather WHERE region=?", (region,)
     ).fetchone()
     key = (region, kind, window, base, tuple(sig))
     hit = _WEATHER_ROLL_CACHE.get(key)

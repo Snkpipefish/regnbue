@@ -104,12 +104,16 @@ ingen setup uten statistisk støtte.
 
 ## Ytelse (panel-bygging)
 - `build_panel` re-scorer pr dato → tungt. `run.py` sampler hver `PANEL_STEP=10`. dag (ytelse, ikke
-  terskel-tuning). Vær-driverne cacher nå rullende vindu pr region (`_WEATHER_ROLL_CACHE` i drivers.py):
-  full historikk regnes én gang, as_of indekseres med bisect → **identiske resultater** (verifisert mot
-  gammel kode + look-ahead-test), ~2–4× raskere på vær-instrumenter (natgas 11→2.9s).
-- **Gjenstående flaskehals:** dype IKKE-vær-drivere (etf_flow, series_spread/ratio, level/momentum på
-  gull/sølv/FX) itererer fortsatt full historikk pr kall. Samme cache-grep kan utvides dit ved behov for
-  å la `PANEL_STEP` settes lavere (tettere base-rate-paneler).
+  terskel-tuning). To cache-lag gir **bit-identiske resultater** (verifisert: alle 83 driver-scorer + 22
+  samlet-scorer matcher gammel ucachet kode mot `setups.json`; + look-ahead-tester):
+  1. **Data-laget** (`_FULL_CACHE` i `context.py`): full makro/pris/spread/ETF/COT-serie hentes/merges
+     ÉN gang pr innholds-signatur (count,min,max,SUM); `as_of` skjæres med bisect. Driverne er urørt.
+     Fjernet bl.a. gulls 16000-rad spread-merge pr kall → gull 58→22s (~2.6×).
+  2. **Vær-laget** (`_WEATHER_ROLL_CACHE` i `drivers.py`): rullende vindu pr region cachet (natgas 11→2.9s).
+- Signaturen har verdi-sjekksum (SUM) så ulike datasett/test-conns med samme antall/datospenn aldri
+  deler nøkkel. Look-ahead bevart (kun ≤as_of eksponeres). `setups.json` uendret (identisk → ingen re-kjøring).
+- Videre (valgfritt): prefiks-sum for `pstdev` i momentum/etf_flow ville gi O(1) pr kall, men kan avvike på
+  flyttall-nivå (ofret bit-identitet) — derfor ikke gjort. `PANEL_STEP` kan nå senkes for tettere paneler.
 
 ## Drift / kommandoer
 - Pipeline (setups.json): `python -m setups.run` · publiser: `./update.sh` (henter+vasker+kjører+pusher).
