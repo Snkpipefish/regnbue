@@ -93,7 +93,9 @@ SEED_MAP: dict[str, dict] = {
     "Wheat": {"cot": {"types": ["disaggregated"], "contracts": ["WHEAT-SRW"]},
               "macro_series": ["DTWEXBGS", "NOAA_ONI"]},
     "Sugar": {"cot": {"types": ["disaggregated"], "contracts": ["SUGAR"]},
-              "macro_series": ["DEXBZUS", "NOAA_ONI"]},
+              "macro_series": ["DEXBZUS", "NOAA_ONI",
+                               "ANP_ETANOL_HIDR_CS_BRL_LITER",      # etanol-paritet-input
+                               "USDA_PSD_INDIA_SUGAR_ENDSTOCKS_KMT"]},  # India-balanse
     "Cocoa": {"cot": {"types": ["disaggregated"], "contracts": ["COCOA"]},
               "macro_series": ["DTWEXBGS", "NOAA_ONI"]},
     "Cotton": {"cot": {"types": ["disaggregated"], "contracts": ["COTTON"]},
@@ -273,6 +275,24 @@ def _seed_etf(src: sqlite3.Connection, dst: sqlite3.Connection, candidates: list
     return len(rows)
 
 
+def _seed_unica_mix(src: sqlite3.Connection, dst: sqlite3.Connection) -> int:
+    """UNICA Brasil C-S sukker-mix % → macro_series (sukker-spesifikk tilbudsdriver)."""
+    try:
+        rows = src.execute(
+            "SELECT report_date, mix_sugar_pct FROM unica_reports "
+            "WHERE mix_sugar_pct IS NOT NULL ORDER BY report_date"
+        ).fetchall()
+    except sqlite3.OperationalError:
+        return 0
+    dst.executemany(
+        "INSERT OR REPLACE INTO macro_series(series_id,date,value) "
+        "VALUES ('UNICA_MIX_SUGAR_PCT',?,?)",
+        [(r["report_date"], r["mix_sugar_pct"]) for r in rows],
+    )
+    _log_seed(dst, "unica_reports", "macro_series", "Sugar", len(rows))
+    return len(rows)
+
+
 def seed(db_path: Path | str = store.DEFAULT_DB_PATH,
          bedrock_db: Path = BEDROCK_DB) -> dict[str, int]:
     """Seed alle MVP-instrumenter. Returnerer total radtelling pr måltabell."""
@@ -289,6 +309,8 @@ def seed(db_path: Path | str = store.DEFAULT_DB_PATH,
                 counts["comex_inventory"] += _seed_comex(src, dst, spec.get("comex_metals", []))
                 counts["weather"] += _seed_weather(src, dst, spec.get("weather_regions", []))
                 counts["etf_holdings"] += _seed_etf(src, dst, spec.get("etf_tickers", []))
+            # Sukker-spesifikk Brasil-mix (egen tabell i bedrock → macro_series).
+            counts["macro_series"] += _seed_unica_mix(src, dst)
     finally:
         src.close()
     return counts

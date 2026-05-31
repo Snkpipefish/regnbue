@@ -191,3 +191,50 @@ def cot_spec_net_percentile(ctx: ScoreContext, params: dict) -> DriverResult:
     score = (2 * p - 1) * _sign(params.get("bull_when", "high"))
     return DriverResult("cot_spec_net_percentile", True, round(score, 4), cur,
                         f"{params['market']} spec-net p{p*100:.0f}", params)
+
+
+@register("ethanol_parity")
+def ethanol_parity(ctx: ScoreContext, params: dict) -> DriverResult:
+    """Etanol-paritet: brasiliansk hydrous-etanol i USD relativt til sukkerprisen.
+
+    Når etanol (omregnet til USD via BRL) er dyrt relativt til sukker, lønner det seg for
+    møllene å lage etanol → mindre sukker på markedet → bullish sukker (bull_when high).
+    Forholdet z-skåres mot egen historikk. Egen, frisk implementasjon.
+
+    NB: ANP-etanolserien er grunn (~2 år) → tynt base-rate-grunnlag, men korrekt driver.
+    """
+    from bisect import bisect_right
+
+    eth = ctx.series(params.get("ethanol_series", "ANP_ETANOL_HIDR_CS_BRL_LITER"))
+    brl = ctx.series(params.get("brl_series", "DEXBZUS"))  # BRL pr USD
+    sugar = ctx.closes(params.get("symbol", "Sugar"), params.get("tf", "D1"))
+    if len(eth) < 20 or not brl or len(sugar) < 20:
+        return _miss("ethanol_parity", "etanol/BRL/sukker", params)
+
+    bdates, bvals = [d for d, _ in brl], [v for _, v in brl]
+    edates, evals = [d for d, _ in eth], [v for _, v in eth]
+
+    def _ffill(dates, vals, on):
+        i = bisect_right(dates, on) - 1
+        return vals[i] if i >= 0 else None
+
+    ratios: list[float] = []
+    for d, sclose in sugar:
+        if d < edates[0] or sclose <= 0:
+            continue
+        e = _ffill(edates, evals, d)
+        b = _ffill(bdates, bvals, d)
+        if e is None or b is None or b <= 0:
+            continue
+        eth_usd = e / b               # BRL/liter ÷ (BRL/USD) = USD/liter
+        ratios.append(eth_usd / sclose)
+    if len(ratios) < 20:
+        return _miss("ethanol_parity", "for kort overlapp", params)
+
+    cur = ratios[-1]
+    mean = statistics.fmean(ratios)
+    sd = statistics.pstdev(ratios) or 1e-9
+    z = (cur - mean) / sd
+    score = math.tanh(z)              # høyt forhold = etanol dyrt vs sukker = bullish
+    return DriverResult("ethanol_parity", True, round(score, 4), round(cur, 5),
+                        f"etanol/sukker z={z:+.2f}", params)

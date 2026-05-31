@@ -4,7 +4,7 @@
 Domeneriktige drivere pr instrument (COT-retning korrekt pr symbol — f.eks. JPY-futures
 er invertert mot USDJPY). Låste base-rate-terskler.
 Kjør:  python scripts/gen_universe_fingerprints.py
-Gull/EURUSD/Kaffe røres ikke (allerede skrevet for hånd).
+Gull/EURUSD/Kaffe/Sugar røres ikke (håndtilpasset med instrument-spesifikke drivere).
 """
 from __future__ import annotations
 
@@ -78,9 +78,6 @@ SPEC = [
     ("Wheat", "Wheat", "grains",
      [macro_mom("DTWEXBGS", 0.20, "low"), cot("Wheat", 0.30), trend("Wheat", 0.30),
       mom("Wheat", 0.20)]),
-    ("Sugar", "Sugar", "softs",
-     [macro_mom("DEXBZUS", 0.25, "low"), cot("Sugar", 0.30), trend("Sugar", 0.25),
-      mom("Sugar", 0.20)]),
     ("Cocoa", "Cocoa", "softs",
      [cot("Cocoa", 0.35), trend("Cocoa", 0.35), mom("Cocoa", 0.30)]),
     ("Cotton", "Cotton", "softs",

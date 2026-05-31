@@ -1,37 +1,30 @@
+# Sukker (ICE No. 11) — håndtilpasset, rent fundamentalt (ingen generisk pris-trend).
+# Research: Brasil ~44% av omsatt sukker; cane-allokering sukker↔etanol er hoveddriveren.
+# El Niño = bullish (tørke India/Thailand + høst-forstyrrelse Brasil C-S).
 id: Sugar
 ticker: Sugar
 asset_class: softs
 drivers:
-- name: momentum
-  weight: 0.25
-  params:
-    series: DEXBZUS
-    horizon_days: 21
-    bull_when: low
-- name: cot_spec_net_percentile
-  weight: 0.3
-  params:
-    market: Sugar
-    lookback_weeks: 156
-    bull_when: high
-- name: price_vs_sma
-  weight: 0.25
-  params:
-    symbol: Sugar
-    window: 200
-    tf: D1
-- name: price_momentum
-  weight: 0.2
-  params:
-    symbol: Sugar
-    horizon_days: 20
-grade_thresholds:
-  A_plus: 0.55
-  A: 0.4
-  B: 0.25
-base_rate:
-  horizon_days: 30
-  band: 0.1
-  min_effective_n: 30
-  min_hit_rate_pct: 55
-  min_expectancy_r: 0.3
+  # Etanol-paritet: dyr etanol (USD) vs sukker → møllene lager etanol → mindre sukker → bullish.
+  - name: ethanol_parity
+    weight: 0.25
+    params: {symbol: Sugar, ethanol_series: ANP_ETANOL_HIDR_CS_BRL_LITER, brl_series: DEXBZUS}
+  # Brasil C-S sukker-mix % (UNICA): høy mix = mer sukker-tilbud = bearish.
+  - name: level_percentile
+    weight: 0.20
+    params: {series: UNICA_MIX_SUGAR_PCT, lookback_days: 1095, bull_when: low}
+  # Brasiliansk real (DEXBZUS = BRL pr USD): svak BRL (høy) → mer salg → bearish.
+  - name: level_percentile
+    weight: 0.20
+    params: {series: DEXBZUS, lookback_days: 504, bull_when: low}
+  # ENSO (NOAA ONI): El Niño (varm, høy) → tilbudssjokk India/Brasil → bullish.
+  - name: level_percentile
+    weight: 0.20
+    params: {series: NOAA_ONI, lookback_days: 1825, bull_when: high}
+  # Spekulant-posisjonering (ICE Sugar No.11).
+  - name: cot_spec_net_percentile
+    weight: 0.15
+    params: {market: Sugar, lookback_weeks: 156, bull_when: high}
+grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
+base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
+            min_hit_rate_pct: 55, min_expectancy_r: 0.3}
