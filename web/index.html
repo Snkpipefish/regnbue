@@ -90,10 +90,29 @@ const fmt = (n) => (n == null ? "–" : (Math.abs(n) >= 100 ? n.toFixed(2)
   : Math.abs(n) >= 1 ? n.toFixed(3) : n.toPrecision(5)));
 const pct = (x) => (x == null ? "–" : (x * 100).toFixed(0) + "%");
 
+// Lesbare etiketter for driver-typene (detail-strengen gir spesifikkene pr instrument).
+const DRIVER_LABELS = {
+  level_percentile: "Nivå-persentil",
+  momentum: "Momentum",
+  series_spread_percentile: "Rentespread",
+  series_ratio: "Serie-forhold",
+  price_ratio: "Relativverdi",
+  cot_spec_net_percentile: "Spekulant-posisjon (COT)",
+  etf_flow: "ETF-flyt",
+  frost_anomaly: "Frost-risiko",
+  rainfall_anomaly: "Nedbør-anomali",
+  seasonal_anomaly: "Lager vs sesong",
+  degree_days_anomaly: "Vær-etterspørsel",
+  ethanol_parity: "Etanol-paritet",
+  price_vs_sma: "Pris vs snitt",
+  price_momentum: "Pris-momentum",
+};
+const label = (name) => DRIVER_LABELS[name] || name;
+
 function chip(d) {
   const cls = !d.ok ? "na" : d.score > 0 ? "pos" : d.score < 0 ? "neg" : "";
   return `<span class="chip ${cls}" data-d='${encodeURIComponent(JSON.stringify(d))}'>
-    ${d.name} <span class="s">${d.ok ? (d.score>0?"+":"")+d.score.toFixed(2) : "n/a"}</span></span>`;
+    ${label(d.name)} <span class="s">${d.ok ? (d.score>0?"+":"")+d.score.toFixed(2) : "n/a"}</span></span>`;
 }
 
 function baseRateBadge(br, published) {
@@ -128,7 +147,7 @@ function openModal(d) {
   const cls = d.score > 0 ? "pos" : "neg";
   document.getElementById("modal").innerHTML = `
     <span class="x" onclick="closeModal()">×</span>
-    <h3>${d.name}</h3>
+    <h3>${label(d.name)}</h3>
     <div class="drv"><div class="top"><span class="nm">Score</span>
       <span class="sc ${cls}">${d.ok ? (d.score>0?"+":"")+d.score.toFixed(4) : "n/a"}</span></div>
       <div class="dt">${d.detail || ""}</div></div>`;
