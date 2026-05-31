@@ -1,39 +1,30 @@
+# AUDUSD — håndtilpasset, fundamentalt (ingen generisk pris-trend).
+# Årsakskjede: AUD er en risk-/råvarevaluta; styres av US−AU rentedifferanse, bred dollar,
+# og spesielt risk-sentiment (AUD selges hardt i risk-off). *USD-par: sterk USD = par NED.
+#   1) US−AU 10y rentespread: bredere (høy US) = sterk USD = AUDUSD bearish.
+#   2) Bred dollar: sterk USD = AUDUSD ned.
+#   3) Spekulant-posisjonering (CME Australian Dollar): trend-bekreftende.
+#   4) Risk-sentiment (VIX): risk-off = AUD (risk-valuta) selges hardt = bearish (tung vekt).
 id: AUDUSD
 ticker: AUDUSD
 asset_class: fx
 drivers:
-- name: series_spread_percentile
-  weight: 0.3
-  params:
-    minuend: DGS10
-    subtrahend: IRLTLT01AUM156N
-    lookback_days: 504
-    bull_when: low
-- name: momentum
-  weight: 0.25
-  params:
-    series: DTWEXBGS
-    horizon_days: 21
-    bull_when: low
-- name: cot_spec_net_percentile
-  weight: 0.2
-  params:
-    market: AUDUSD
-    lookback_weeks: 156
-    bull_when: high
-- name: price_vs_sma
-  weight: 0.25
-  params:
-    symbol: AUDUSD
-    window: 200
-    tf: D1
-grade_thresholds:
-  A_plus: 0.55
-  A: 0.4
-  B: 0.25
-base_rate:
-  horizon_days: 30
-  band: 0.1
-  min_effective_n: 30
-  min_hit_rate_pct: 55
-  min_expectancy_r: 0.3
+  # US−AU 10y rentespread. Bred (høy) = sterk USD = bearish (bull_when low). Dyp (1990→).
+  - name: series_spread_percentile
+    weight: 0.30
+    params: {minuend: DGS10, subtrahend: IRLTLT01AUM156N, lookback_days: 504, bull_when: low}
+  # Bred handelsvektet dollar opp = AUDUSD ned (bull_when low). 21d-momentum. Dyp (2006→).
+  - name: momentum
+    weight: 0.20
+    params: {series: DTWEXBGS, horizon_days: 21, bull_when: low}
+  # Spekulant netto-posisjonering (CME Australian Dollar), trend-bekreftende. 2016→.
+  - name: cot_spec_net_percentile
+    weight: 0.20
+    params: {market: AUDUSD, lookback_weeks: 156, bull_when: high}
+  # Risk-sentiment: høy VIX = risk-off = AUD (risk-valuta) selges = bearish (bull_when low). Dyp (2010→).
+  - name: level_percentile
+    weight: 0.30
+    params: {series: VIXCLS, lookback_days: 504, bull_when: low}
+grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
+base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
+            min_hit_rate_pct: 55, min_expectancy_r: 0.3}

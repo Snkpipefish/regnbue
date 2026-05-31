@@ -58,15 +58,7 @@ SPEC = [
     # FX — rentediff + DXY. NB COT-retning og diff-fortegn avhenger av base-valuta:
     #   *USD-par (EUR/GBP/AUD): sterk USD = par NED → bull_when low; COT long utenl. = bull par.
     #   USDJPY (USD-base): sterk USD = par OPP → bull_when high; COT long JPY = bear par → low.
-    ("GBPUSD", "GBPUSD", "fx",
-     [spread("DGS10", "IRLTLT01GBM156N", 0.30, "low"), macro_mom("DTWEXBGS", 0.25, "low"),
-      cot("GBPUSD", 0.20, "high"), trend("GBPUSD", 0.25)]),
-    ("USDJPY", "USDJPY", "fx",
-     [spread("DGS10", "IRLTLT01JPM156N", 0.30, "high"), macro_mom("DTWEXBGS", 0.25, "high"),
-      cot("USDJPY", 0.20, "low"), trend("USDJPY", 0.25)]),
-    ("AUDUSD", "AUDUSD", "fx",
-     [spread("DGS10", "IRLTLT01AUM156N", 0.30, "low"), macro_mom("DTWEXBGS", 0.25, "low"),
-      cot("AUDUSD", 0.20, "high"), trend("AUDUSD", 0.25)]),
+    # (GBPUSD/USDJPY/AUDUSD håndtilpasset i config/instruments/ — fjernet herfra.)
     # Indeks — kredittspread-regime (lav = risk-on)
     ("SP500", "SPX500", "index",
      [macro_lvl("BAMLH0A0HYM2", 0.30, "low"), cot("SP500", 0.20, "high"), trend("SPX500", 0.30),

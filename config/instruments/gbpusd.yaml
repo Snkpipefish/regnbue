@@ -1,39 +1,30 @@
+# GBPUSD — håndtilpasset, fundamentalt (ingen generisk pris-trend).
+# Årsakskjede: GBPUSD styres av US−UK rentedifferanse (Fed↔BoE), Fed-forventninger,
+# risk-sentiment (USD trygg-havn) og posisjonering. *USD-par: sterk USD = par NED.
+#   1) US−UK 10y rentespread: bredere (høy US) = sterk USD = GBPUSD bearish.
+#   2) Front-end Fed-forventninger (US 2y): stigende = USD opp = GBPUSD ned.
+#   3) Spekulant-posisjonering (CME British Pound): trend-bekreftende.
+#   4) Risk-sentiment (VIX): risk-off = USD trygg-havn = GBPUSD ned.
 id: GBPUSD
 ticker: GBPUSD
 asset_class: fx
 drivers:
-- name: series_spread_percentile
-  weight: 0.3
-  params:
-    minuend: DGS10
-    subtrahend: IRLTLT01GBM156N
-    lookback_days: 504
-    bull_when: low
-- name: momentum
-  weight: 0.25
-  params:
-    series: DTWEXBGS
-    horizon_days: 21
-    bull_when: low
-- name: cot_spec_net_percentile
-  weight: 0.2
-  params:
-    market: GBPUSD
-    lookback_weeks: 156
-    bull_when: high
-- name: price_vs_sma
-  weight: 0.25
-  params:
-    symbol: GBPUSD
-    window: 200
-    tf: D1
-grade_thresholds:
-  A_plus: 0.55
-  A: 0.4
-  B: 0.25
-base_rate:
-  horizon_days: 30
-  band: 0.1
-  min_effective_n: 30
-  min_hit_rate_pct: 55
-  min_expectancy_r: 0.3
+  # US−UK 10y nominell rentespread. Bred (høy) = sterk USD = bearish (bull_when low). Dyp (1990→).
+  - name: series_spread_percentile
+    weight: 0.35
+    params: {minuend: DGS10, subtrahend: IRLTLT01GBM156N, lookback_days: 504, bull_when: low}
+  # US 2y-momentum (Fed-forventninger). Stigende = USD opp = GBPUSD ned (bull_when low). Dyp (1976→).
+  - name: momentum
+    weight: 0.20
+    params: {series: DGS2, horizon_days: 21, bull_when: low}
+  # Spekulant netto-posisjonering (CME British Pound), trend-bekreftende. Grunn (2022→).
+  - name: cot_spec_net_percentile
+    weight: 0.20
+    params: {market: GBPUSD, lookback_weeks: 156, bull_when: high}
+  # Risk-sentiment: høy VIX = risk-off = USD-bud = GBPUSD ned (bull_when low). Dyp (2010→).
+  - name: level_percentile
+    weight: 0.25
+    params: {series: VIXCLS, lookback_days: 504, bull_when: low}
+grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
+base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
+            min_hit_rate_pct: 55, min_expectancy_r: 0.3}

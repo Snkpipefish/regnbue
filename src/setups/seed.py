@@ -103,11 +103,11 @@ SEED_MAP: dict[str, dict] = {
                "macro_series": ["DTWEXBGS", "NOAA_ONI"]},
     # FX (COT-kontrakt = utenlandsk valuta vs USD; retning håndteres i fingerprintet)
     "GBPUSD": {"cot": {"types": ["tff", "legacy"], "contracts": ["BRITISH POUND"]},
-               "macro_series": ["DGS10", "IRLTLT01GBM156N", "DTWEXBGS"]},
+               "macro_series": ["DGS10", "DGS2", "IRLTLT01GBM156N", "VIXCLS"]},
     "USDJPY": {"cot": {"types": ["tff", "legacy"], "contracts": ["JAPANESE YEN"]},
-               "macro_series": ["DGS10", "IRLTLT01JPM156N", "DTWEXBGS"]},
+               "macro_series": ["DGS10", "DGS2", "IRLTLT01JPM156N", "VIXCLS"]},
     "AUDUSD": {"cot": {"types": ["tff", "legacy"], "contracts": ["AUSTRALIAN DOLLAR"]},
-               "macro_series": ["DGS10", "IRLTLT01AUM156N", "DTWEXBGS"]},
+               "macro_series": ["DGS10", "IRLTLT01AUM156N", "DTWEXBGS", "VIXCLS"]},
     # Indeks
     "SP500": {"cot": {"types": ["tff", "legacy"], "contracts": ["E-MINI S&P 500"]},
               "macro_series": ["BAMLH0A0HYM2", "VIXCLS"]},

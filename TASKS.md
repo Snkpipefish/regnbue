@@ -88,6 +88,8 @@ Se playbook i `STATE.md`. Pr instrument: research → skaff dyp data → hånd-s
 - [x] **cocoa** — Vest-Afrika-vær, ENSO (El Niño=bull), COT. Fanger 2023–24 supply-krisen (LONG A).
 - [x] **cotton** — bomullsbelte-vær (jun–sep), dollar, COT.
   Ny `active_months`-sesong-gate på rainfall_anomaly; dyp Open-Meteo for 4 nye avlings-regioner.
-- [ ] gbpusd, usdjpy, audusd
+- [x] **gbpusd / usdjpy / audusd** — EURUSD-mønster: rentespread (dyp 1990→), Fed-forventninger/dollar,
+      COT, VIX risk-sentiment (fortegn pr valuta: yen styrkes/AUD selges i risk-off). Fjernet price_vs_sma.
+      Verifisert: USDJPY 2022-10 LONG, AUDUSD 2022-10 SHORT A+ koherent.
 - [ ] sp500, nasdaq
 - [ ] btcusd, ethusd

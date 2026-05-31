@@ -2,7 +2,7 @@
 
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
-**Sist oppdatert:** 2026-05-31 (14 instr tilpasset: + korn/softs corn/soybean/wheat/cocoa/cotton)
+**Sist oppdatert:** 2026-05-31 (17 instr tilpasset: + FX gbpusd/usdjpy/audusd)
 **Nåværende fase:** MVP live + scenario-generator bygget. **Neste: instrument-tilpasning for resten (egne drivere pr instrument).**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
@@ -69,7 +69,11 @@ ingen setup uten statistisk støtte.
   (DCOILWTICO). Dyp Open-Meteo for us_cornbelt/us_wheat_plains/us_cotton (2000→).
 - ✅ **cocoa** (2026-05-31) — Vest-Afrika-vær (west_africa_cocoa, 2000→), ENSO (El Niño=bull), COT.
   Fanger 2023–24 supply-krisen (LONG A). NB grain/softs Skilling-pris kun 2021→ → base-rate tynn.
-- ⚠️ **7 øvrige** (gbpusd, usdjpy, audusd, sp500, nasdaq, btcusd, ethusd) — generisk, gen_universe_fingerprints.py.
+- ✅ **gbpusd / usdjpy / audusd** (2026-05-31) — EURUSD-mønster: US−utland 10y rentespread (hentet dypt
+  fra FRED, 1990→), Fed-forventninger (US 2y) / dollar, COT, VIX. VIX-fortegn pr valuta: yen styrkes &
+  AUD selges i risk-off. Fjernet `price_vs_sma`. NB: carry-modeller misfyrer i USD-likviditetskriser
+  (GBP 2020-03) — tunes IKKE etter resultat.
+- ⚠️ **4 øvrige** (sp500, nasdaq, btcusd, ethusd) — generisk, gen_universe_fingerprints.py.
 
 ### Gjenbrukbare drivere (registrert i `score/drivers.py`)
 `level_percentile`, `momentum`, `price_momentum`, `series_spread_percentile`, `price_vs_sma`,
