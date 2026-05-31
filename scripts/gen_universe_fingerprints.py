@@ -53,15 +53,7 @@ SPEC = [
     # (Silver håndtilpasset i config/instruments/silver.yaml — fjernet herfra.)
     # (Platinum håndtilpasset i config/instruments/platinum.yaml — fjernet herfra.)
     # (Copper håndtilpasset i config/instruments/copper.yaml — fjernet herfra.)
-    # Energi
-    ("WTI", "OIL WTI", "energy",
-     [macro_lvl("OVX", 0.20, "low"), cot("WTI", 0.30), trend("OIL WTI", 0.25),
-      mom("OIL WTI", 0.25)]),
-    ("Brent", "OIL BRENT", "energy",
-     [macro_lvl("OVX", 0.20, "low"), cot("Brent", 0.30), trend("OIL BRENT", 0.25),
-      mom("OIL BRENT", 0.25)]),
-    ("NatGas", "Natural Gas", "energy",
-     [cot("NatGas", 0.30), trend("Natural Gas", 0.35), mom("Natural Gas", 0.35)]),
+    # Energi (WTI/Brent/NatGas håndtilpasset i config/instruments/ — fjernet herfra.)
     # Korn/softs
     ("Corn", "Corn", "grains",
      [macro_mom("DTWEXBGS", 0.20, "low"), cot("Corn", 0.30), trend("Corn", 0.30),

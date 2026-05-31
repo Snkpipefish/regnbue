@@ -1,37 +1,32 @@
+# WTI råolje — håndtilpasset, fundamentalt (ingen generisk pris-trend).
+# Årsakskjede (EIA): pris drives av tilbud/etterspørsel-balanse (lager), OPEC-tilbud,
+# finansmarked (dollar/posisjonering) og etterspørsel.
+#   1) US råolje-lager vs sesong-norm: over norm = overforsynt = bearish.
+#   2) Spekulant-posisjonering (NYMEX WTI): trend-bekreftende.
+#   3) Bred dollar: svak USD = bullish (USD-priset råvare).
+#   4) Olje-volatilitet (OVX): høy = stress/risk-off = motvind (lav vekt).
+# NB: OPEC spare-kapasitet (sterk driver) har ingen gratis daglig serie → utelatt.
+# Lager hentes via EIA (WCESTUS1, ukentlig 1995→) i fetch.eia — kjøres i update.sh.
 id: WTI
 ticker: OIL WTI
 asset_class: energy
 drivers:
-- name: level_percentile
-  weight: 0.2
-  params:
-    series: OVX
-    lookback_days: 504
-    bull_when: low
-- name: cot_spec_net_percentile
-  weight: 0.3
-  params:
-    market: WTI
-    lookback_weeks: 156
-    bull_when: high
-- name: price_vs_sma
-  weight: 0.25
-  params:
-    symbol: OIL WTI
-    window: 200
-    tf: D1
-- name: price_momentum
-  weight: 0.25
-  params:
-    symbol: OIL WTI
-    horizon_days: 20
-grade_thresholds:
-  A_plus: 0.55
-  A: 0.4
-  B: 0.25
-base_rate:
-  horizon_days: 30
-  band: 0.1
-  min_effective_n: 30
-  min_hit_rate_pct: 55
-  min_expectancy_r: 0.3
+  # US råolje-lager eks. SPR vs sesong-norm. Over norm = overforsynt = bearish (bull_when low). Dyp (1995→).
+  - name: seasonal_anomaly
+    weight: 0.35
+    params: {series: WCESTUS1, lookback_days: 3650, bull_when: low}
+  # Spekulant netto-posisjonering (NYMEX WTI), trend-bekreftende. Dyp (2010→).
+  - name: cot_spec_net_percentile
+    weight: 0.30
+    params: {market: WTI, lookback_weeks: 156, bull_when: high}
+  # Bred handelsvektet dollar opp = motvind. 21d-momentum. Dyp (2006→).
+  - name: momentum
+    weight: 0.20
+    params: {series: DTWEXBGS, horizon_days: 21, bull_when: low}
+  # Olje-volatilitet (OVX): høy = stress = motvind (bull_when low). 2016→.
+  - name: level_percentile
+    weight: 0.15
+    params: {series: OVX, lookback_days: 504, bull_when: low}
+grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
+base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
+            min_hit_rate_pct: 55, min_expectancy_r: 0.3}

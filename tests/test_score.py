@@ -10,10 +10,12 @@ from setups import store
 from setups.score.context import ScoreContext
 from setups.score.drivers import (
     cot_spec_net_percentile,
+    degree_days_anomaly,
     etf_flow,
     frost_anomaly,
     price_ratio,
     price_vs_sma,
+    seasonal_anomaly,
     series_spread_percentile,
 )
 from setups.score.engine import score_instrument
@@ -155,6 +157,43 @@ def test_price_ratio_low_is_bullish(conn):
     ctx = ScoreContext(conn, as_of=dates[-1])
     res = price_ratio(ctx, {"numerator": "PLATINUM", "denominator": "GOLD", "bull_when": "low"})
     assert res.ok and res.score > 0.5  # ratio på bunn + bull_when low → bullish
+
+
+def test_seasonal_anomaly_above_norm_is_bearish(conn):
+    # Lager med sesong-syklus; siste verdi langt OVER samme-uke-norm → bull_when low → bearish.
+    import math as _m
+    d0 = date.fromisoformat("2018-01-01")
+    for i in range(365 * 5):
+        d = d0 + timedelta(days=i)
+        doy = d.timetuple().tm_yday
+        base = 400000 + 30000 * _m.sin(2 * _m.pi * doy / 365)
+        val = base + (80000 if i == 365 * 5 - 1 else 0)  # siste dag: kraftig over norm
+        conn.execute("INSERT OR REPLACE INTO macro_series VALUES (?,?,?)",
+                     ("WCESTUS1", d.isoformat(), val))
+    last = (d0 + timedelta(days=365 * 5 - 1)).isoformat()
+    ctx = ScoreContext(conn, as_of=last)
+    res = seasonal_anomaly(ctx, {"series": "WCESTUS1", "bull_when": "low"})
+    assert res.ok and res.score < -0.3  # over sesong-norm + bull_when low → bearish
+
+
+def test_degree_days_anomaly_extreme_cold_is_bullish(conn):
+    # Vinter-temp-syklus; en nylig ekstrem kuldeperiode → høy degree-days → bullish (high).
+    import math as _m
+    d0 = date.fromisoformat("2018-01-01")
+    n = 365 * 5
+    for i in range(n):
+        d = d0 + timedelta(days=i)
+        doy = d.timetuple().tm_yday
+        tmean = 12.0 - 12.0 * _m.cos(2 * _m.pi * (doy - 196) / 365)  # nordlig: kaldt ~jan
+        if i >= n - 14:
+            tmean -= 12.0  # siste 2 uker: kraftig kuldebølge
+        conn.execute("INSERT OR REPLACE INTO weather(region,date,tmax,tmin) VALUES (?,?,?,?)",
+                     ("us_gas_demand", d.isoformat(), tmean + 3, tmean - 3))
+    last = (d0 + timedelta(days=n - 1)).isoformat()
+    ctx = ScoreContext(conn, as_of=last)
+    res = degree_days_anomaly(
+        ctx, {"region": "us_gas_demand", "window_days": 14, "comfort_base_c": 18.0})
+    assert res.ok and res.score > 0.3  # ekstrem kulde = etterspørsel = bullish
 
 
 def test_spread_percentile_low_is_bullish(conn):

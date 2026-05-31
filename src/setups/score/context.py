@@ -89,6 +89,15 @@ class ScoreContext:
         ).fetchall()
         return [(r[0], r[1]) for r in rows]
 
+    # --- vær (døgnmiddel ≈ (tmax+tmin)/2, for energi-etterspørsel/degree-days) ---
+    def weather_tmean(self, region: str) -> list[tuple[str, float]]:
+        rows = self.conn.execute(
+            "SELECT date, (tmax+tmin)/2.0 FROM weather WHERE region=? AND date<=? "
+            "AND tmax IS NOT NULL AND tmin IS NOT NULL ORDER BY date",
+            (region, self.as_of),
+        ).fetchall()
+        return [(r[0], r[1]) for r in rows]
+
     # --- COT-posisjonering ---
     def cot(self, market: str) -> list[sqlite3.Row]:
         return self.conn.execute(

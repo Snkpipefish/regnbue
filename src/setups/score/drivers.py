@@ -320,6 +320,91 @@ def rainfall_anomaly(ctx: ScoreContext, params: dict) -> DriverResult:
                         f"{region} {win}d-nedbør {kind} z={z:+.2f}", params)
 
 
+@register("degree_days_anomaly")
+def degree_days_anomaly(ctx: ScoreContext, params: dict) -> DriverResult:
+    """Temperatur-drevet energi-etterspørsel vs sesong-norm (begge ekstremer = etterspørsel).
+
+    For naturgass gir BÅDE kulde (oppvarming, HDD) og hete (kjøling, CDD) etterspørsel:
+    degree-days = |døgnmiddel − komfort-basis|. Vi summerer over et nylig vindu og z-skårer
+    mot SAMME kalenderperiode i tidligere år, så «kaldere/varmere enn normalt» (over-normal
+    etterspørsel) = bullish. Normalt vær = bearish. Egen, frisk implementasjon.
+    """
+    region = params.get("region", "us_gas_demand")
+    base = params.get("comfort_base_c", 18.0)
+    win = params.get("window_days", 14)
+    seasonal_halfwidth = params.get("seasonal_halfwidth", 15)
+    series = ctx.weather_tmean(region)
+    if len(series) < 365 * 3:
+        return _miss("degree_days_anomaly", region, params)
+
+    dates = [date.fromisoformat(d) for d, _ in series]
+    dd = [abs(v - base) for _, v in series]  # degree-days (HDD+CDD)
+    from collections import deque
+    roll: list[float] = []
+    acc = 0.0
+    q: deque[float] = deque()
+    for v in dd:
+        q.append(v)
+        acc += v
+        if len(q) > win:
+            acc -= q.popleft()
+        roll.append(acc)
+
+    cur_doy = dates[-1].timetuple().tm_yday
+    cur_sum = roll[-1]
+
+    def _doy_dist(a: int, b: int) -> int:
+        d = abs(a - b)
+        return min(d, 366 - d)
+
+    baseline = [roll[i] for i in range(len(roll) - 30)
+                if _doy_dist(dates[i].timetuple().tm_yday, cur_doy) <= seasonal_halfwidth]
+    if len(baseline) < 20:
+        return _miss("degree_days_anomaly", "for tynt sesong-grunnlag", params)
+    mean = statistics.fmean(baseline)
+    sd = statistics.pstdev(baseline) or 1e-9
+    z = (cur_sum - mean) / sd
+    score = math.tanh(z) * _sign(params.get("bull_when", "high"))
+    return DriverResult("degree_days_anomaly", True, round(score, 4), round(z, 3),
+                        f"{region} {win}d degree-days z={z:+.2f}", params)
+
+
+@register("seasonal_anomaly")
+def seasonal_anomaly(ctx: ScoreContext, params: dict) -> DriverResult:
+    """Retningsbestemt avvik fra sesong-norm for en sterkt sesongbetont makro-serie.
+
+    For lager (olje/gass) er rånivået sesongbetont (vinter-trekk, skulder-bygg); det
+    informative er om lageret er HØYT eller LAVT vs samme uke i tidligere år. Vi z-skårer
+    dagens verdi mot same-DOY-fordelingen (±halvbredde) i historikken. For lager:
+    over sesong-norm = overforsynt = bearish (bull_when low). Egen, frisk implementasjon.
+    """
+    series = _within_lookback(ctx.series(params["series"]), ctx.as_of,
+                              params.get("lookback_days", 3650))
+    if len(series) < 365:
+        return _miss("seasonal_anomaly", params["series"], params)
+    dates = [date.fromisoformat(d) for d, _ in series]
+    vals = [v for _, v in series]
+    seasonal_halfwidth = params.get("seasonal_halfwidth", 10)
+    cur_doy = dates[-1].timetuple().tm_yday
+    cur = vals[-1]
+
+    def _doy_dist(a: int, b: int) -> int:
+        d = abs(a - b)
+        return min(d, 366 - d)
+
+    # Sesong-baseline: samme tid på året i tidligere perioder (ekskluder siste ~30 dager).
+    baseline = [vals[i] for i in range(len(vals) - 30)
+                if _doy_dist(dates[i].timetuple().tm_yday, cur_doy) <= seasonal_halfwidth]
+    if len(baseline) < 15:
+        return _miss("seasonal_anomaly", "for tynt sesong-grunnlag", params)
+    mean = statistics.fmean(baseline)
+    sd = statistics.pstdev(baseline) or 1e-9
+    z = (cur - mean) / sd
+    score = math.tanh(z) * _sign(params.get("bull_when", "high"))
+    return DriverResult("seasonal_anomaly", True, round(score, 4), round(cur, 1),
+                        f"{params['series']} vs sesong z={z:+.2f}", params)
+
+
 @register("price_ratio")
 def price_ratio(ctx: ScoreContext, params: dict) -> DriverResult:
     """Z-skåret relativverdi mellom to NIVÅ-feed-symboler (teller/nevner).

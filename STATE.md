@@ -2,7 +2,7 @@
 
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
-**Sist oppdatert:** 2026-05-31 (gold, eurusd, coffee, silver, platinum, copper fundamentalt tilpasset)
+**Sist oppdatert:** 2026-05-31 (9 instr fundamentalt tilpasset: + energi wti/brent/natgas)
 **Nåværende fase:** MVP live + scenario-generator bygget. **Neste: instrument-tilpasning for resten (egne drivere pr instrument).**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
@@ -60,12 +60,17 @@ ingen setup uten statistisk støtte.
   mean-reversion, ikke pris-trend), COT, dollar, realrente (lav vekt). Verifisert 2025/2021 LONG, 2018/2023 SHORT.
 - ✅ **copper** (2026-05-31) — dollar, HY-kredittspread (vekst), COT, VIX. NB: pris kun 2023→, COT 2022→,
   BAMLH0A0HYM2 leverer kun 2023→ på FRED → base-rate tynn (gaten avviser ærlig). Drivere fundamentalt riktige.
-- ⚠️ **15 øvrige** (wti, brent, natgas, corn, soybean, wheat, cocoa, cotton,
+- ✅ **wti / brent** (2026-05-31) — `seasonal_anomaly` på EIA crude-lager (WCESTUS1) vs sesong-norm
+  (ny EIA-fetcher `fetch.eia`), COT, dollar, OVX. Brent-COT grunn (2022→) → renormaliserer pent til NA.
+- ✅ **natgas** (2026-05-31) — `seasonal_anomaly` EIA gass-lager (NG_STOR_L48) + `degree_days_anomaly`
+  (ny driver: vær-drevet etterspørsel, Chicago us_gas_demand 2005→), COT. Pris kun 2019→ (tynn base-rate).
+- ⚠️ **12 øvrige** (corn, soybean, wheat, cocoa, cotton,
   gbpusd, usdjpy, audusd, sp500, nasdaq, btcusd, ethusd) — generisk, generert av `gen_universe_fingerprints.py`.
 
 ### Gjenbrukbare drivere (registrert i `score/drivers.py`)
 `level_percentile`, `momentum`, `price_momentum`, `series_spread_percentile`, `price_vs_sma`,
-`cot_spec_net_percentile`, `ethanol_parity`, `series_ratio`, `rainfall_anomaly`, `etf_flow`, `frost_anomaly`, `price_ratio`. Lag nye ved behov med `@register`.
+`cot_spec_net_percentile`, `ethanol_parity`, `series_ratio`, `rainfall_anomaly`, `etf_flow`, `frost_anomaly`,
+`price_ratio`, `seasonal_anomaly`, `degree_days_anomaly`. Lag nye ved behov med `@register`.
 
 ---
 
@@ -101,7 +106,9 @@ ingen setup uten statistisk støtte.
 ## Data / API (detaljer i `DATA_KARTLEGGING.md`)
 - Nøkler i `~/.bedrock/secrets.env`: cTrader, FRED, EIA, FAS/USDA/api.data.gov (samme), NASS, AGSI.
 - Brukt: cTrader (priser) + FRED (makro) live; resten seedet fra `~/bedrock/bedrock.db`.
-- Ikke-wiret ennå: EIA, FAS/PSD, NASS, AGSI, LBMA, CBOE, Deribit, Baker Hughes m.fl. (kandidater for tilpasning).
+- **EIA wiret (2026-05-31):** `fetch.eia` henter crude-lager (WCESTUS1, 1995→) + gass-lager (NG_STOR_L48,
+  2010→) via EIA API v2 data-rute. Lagt i `update.sh`. Open-Meteo-vær også i `update.sh` nå.
+- Ikke-wiret ennå: FAS/PSD, NASS, AGSI, LBMA, CBOE, Deribit, Baker Hughes m.fl. (kandidater for tilpasning).
 
 ## Åpne spørsmål
 - Skal scenario-generatoren bli hoved-produktet (ærlig fordeling) framfor «setups»? (UI viser i dag setups.json.)

@@ -18,6 +18,10 @@ fi
 # publiserer vi likevel på eksisterende data heller enn å blokkere.
 echo "[update] henter makro (FRED) …"
 $PY -m setups.fetch.fred || echo "[update] FRED-fetch feilet, fortsetter."
+echo "[update] henter energi-lager (EIA) …"
+$PY -m setups.fetch.eia || echo "[update] EIA-fetch feilet, fortsetter."
+echo "[update] henter vær (Open-Meteo) …"
+$PY -m setups.fetch.weather || echo "[update] vær-fetch feilet, fortsetter."
 echo "[update] henter ferske priser (cTrader) …"
 $PY -m setups.ctrader_prices GOLD EURUSD Coffee --years 1 || echo "[update] pris-fetch feilet, fortsetter."
 

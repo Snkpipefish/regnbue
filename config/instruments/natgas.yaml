@@ -1,31 +1,27 @@
+# Naturgass (Henry Hub) — håndtilpasset, fundamentalt (ingen generisk pris-trend).
+# Årsakskjede: gass er en balanse mellom LAGER (tilbud) og VÆR-drevet etterspørsel.
+#   1) US gass-lager (Lower 48) vs sesong-norm: over norm = overforsynt = bearish.
+#   2) Vær-ekstremer (degree-days, Midwest): kald vinter/varm sommer = etterspørsel = bullish.
+#   3) Spekulant-posisjonering (NYMEX NatGas): trend-bekreftende.
+# NB: Skilling-pris er kun ~2019→ → base-rate-gaten avviser ærlig (korrekt). Lager via EIA
+#     (NG_STOR_L48, ukentlig 2010→, fetch.eia); vær via Open-Meteo (us_gas_demand, 2005→).
+#     US produksjon (skifer) er en strukturell bearish driver men mangler dyp daglig serie → utelatt.
 id: NatGas
 ticker: Natural Gas
 asset_class: energy
 drivers:
-- name: cot_spec_net_percentile
-  weight: 0.3
-  params:
-    market: NatGas
-    lookback_weeks: 156
-    bull_when: high
-- name: price_vs_sma
-  weight: 0.35
-  params:
-    symbol: Natural Gas
-    window: 200
-    tf: D1
-- name: price_momentum
-  weight: 0.35
-  params:
-    symbol: Natural Gas
-    horizon_days: 20
-grade_thresholds:
-  A_plus: 0.55
-  A: 0.4
-  B: 0.25
-base_rate:
-  horizon_days: 30
-  band: 0.1
-  min_effective_n: 30
-  min_hit_rate_pct: 55
-  min_expectancy_r: 0.3
+  # US gass-lager (Lower 48) vs sesong-norm. Over norm = overforsynt = bearish (bull_when low). Dyp (2010→).
+  - name: seasonal_anomaly
+    weight: 0.35
+    params: {series: NG_STOR_L48, lookback_days: 3650, bull_when: low}
+  # Vær-drevet etterspørsel (degree-days Midwest): ekstrem kulde/hete = etterspørsel = bullish. Dyp (2005→).
+  - name: degree_days_anomaly
+    weight: 0.35
+    params: {region: us_gas_demand, window_days: 14, comfort_base_c: 18.0}
+  # Spekulant netto-posisjonering (NYMEX NatGas), trend-bekreftende. Dyp (2010→).
+  - name: cot_spec_net_percentile
+    weight: 0.30
+    params: {market: NatGas, lookback_weeks: 156, bull_when: high}
+grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
+base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
+            min_hit_rate_pct: 55, min_expectancy_r: 0.3}

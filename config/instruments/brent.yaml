@@ -1,37 +1,30 @@
+# Brent råolje — håndtilpasset, fundamentalt (ingen generisk pris-trend).
+# Speiler WTI-logikken (global tilbud/etterspørsel-balanse). US råolje-lager brukes som
+# global-balanse-proxy; Brent reflekterer sjøbåren/global olje.
+#   1) US råolje-lager vs sesong-norm: over norm = overforsynt = bearish.
+#   2) Spekulant-posisjonering (ICE Brent): trend-bekreftende (COT grunn, 2022→).
+#   3) Bred dollar: svak USD = bullish.
+#   4) Olje-volatilitet (OVX): høy = stress = motvind (lav vekt).
 id: Brent
 ticker: OIL BRENT
 asset_class: energy
 drivers:
-- name: level_percentile
-  weight: 0.2
-  params:
-    series: OVX
-    lookback_days: 504
-    bull_when: low
-- name: cot_spec_net_percentile
-  weight: 0.3
-  params:
-    market: Brent
-    lookback_weeks: 156
-    bull_when: high
-- name: price_vs_sma
-  weight: 0.25
-  params:
-    symbol: OIL BRENT
-    window: 200
-    tf: D1
-- name: price_momentum
-  weight: 0.25
-  params:
-    symbol: OIL BRENT
-    horizon_days: 20
-grade_thresholds:
-  A_plus: 0.55
-  A: 0.4
-  B: 0.25
-base_rate:
-  horizon_days: 30
-  band: 0.1
-  min_effective_n: 30
-  min_hit_rate_pct: 55
-  min_expectancy_r: 0.3
+  # US råolje-lager eks. SPR vs sesong-norm (global-balanse-proxy). Over norm = bearish. Dyp (1995→).
+  - name: seasonal_anomaly
+    weight: 0.35
+    params: {series: WCESTUS1, lookback_days: 3650, bull_when: low}
+  # Spekulant netto-posisjonering (ICE Brent), trend-bekreftende. Grunn (2022→).
+  - name: cot_spec_net_percentile
+    weight: 0.30
+    params: {market: Brent, lookback_weeks: 156, bull_when: high}
+  # Bred handelsvektet dollar opp = motvind. 21d-momentum. Dyp (2006→).
+  - name: momentum
+    weight: 0.20
+    params: {series: DTWEXBGS, horizon_days: 21, bull_when: low}
+  # Olje-volatilitet (OVX): høy = stress = motvind (bull_when low). 2016→.
+  - name: level_percentile
+    weight: 0.15
+    params: {series: OVX, lookback_days: 504, bull_when: low}
+grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
+base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
+            min_hit_rate_pct: 55, min_expectancy_r: 0.3}

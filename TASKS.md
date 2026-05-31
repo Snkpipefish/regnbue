@@ -78,7 +78,10 @@ Se playbook i `STATE.md`. Pr instrument: research → skaff dyp data → hånd-s
 - [x] **silver** — realrente, bred dollar, SLV ETF-flyt (via shares_outstanding-fallback), COT.
 - [x] **platinum** — platina/gull-relativverdi (ny `price_ratio`-driver), COT, dollar, realrente (lav vekt).
 - [x] **copper** — dollar, HY-kredittspread (vekst), COT, VIX risk-sentiment. NB data tynn (pris 2023→).
-- [ ] wti, brent, natgas
+- [x] **wti** — EIA crude-lager vs sesong-norm (ny `seasonal_anomaly` + ny EIA-fetcher), COT, dollar, OVX.
+- [x] **brent** — samme som WTI (US-lager som global-proxy); Brent-COT grunn (2022→), renormaliserer pent.
+- [x] **natgas** — EIA gass-lager vs sesong-norm + degree-days vær-etterspørsel (ny `degree_days_anomaly`,
+      dyp Chicago-vær), COT. NB pris kun 2019→. Verifisert: 2024-02 SHORT A+ (mild vinter + glut).
 - [ ] corn, soybean, wheat, cocoa, cotton
 - [ ] gbpusd, usdjpy, audusd
 - [ ] sp500, nasdaq
