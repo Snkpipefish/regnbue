@@ -81,6 +81,9 @@ def fhs_scenario(returns: np.ndarray, as_of_idx: int, horizon: int = 20,
     z = hist / vol                                   # standardiserte residualer
     pool = z if resid_pool is None else resid_pool   # ev. kryss-instrument-pool
     pool = pool[np.isfinite(pool)]
+    # Robusthet: klipp ekstreme residualer (avvikende barer) så én glitch ikke gir
+    # astronomiske bootstrap-baner (oppdaget på SPX500). ±8σ er rikelig for fete haler.
+    pool = np.clip(pool, -8.0, 8.0)
     rng = np.random.default_rng(seed + as_of_idx)
     paths = np.empty(n_paths)
     n = len(pool)
