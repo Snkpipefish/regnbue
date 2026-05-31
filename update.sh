@@ -21,6 +21,9 @@ $PY -m setups.fetch.fred || echo "[update] FRED-fetch feilet, fortsetter."
 echo "[update] henter ferske priser (cTrader) …"
 $PY -m setups.ctrader_prices GOLD EURUSD Coffee --years 1 || echo "[update] pris-fetch feilet, fortsetter."
 
+echo "[update] vasker pris-data (skala-glitcher) …"
+$PY -m setups.clean || echo "[update] datavask feilet, fortsetter."
+
 echo "[update] kjører pipeline …"
 $PY -m setups.run
 
