@@ -91,5 +91,9 @@ Se playbook i `STATE.md`. Pr instrument: research → skaff dyp data → hånd-s
 - [x] **gbpusd / usdjpy / audusd** — EURUSD-mønster: rentespread (dyp 1990→), Fed-forventninger/dollar,
       COT, VIX risk-sentiment (fortegn pr valuta: yen styrkes/AUD selges i risk-off). Fjernet price_vs_sma.
       Verifisert: USDJPY 2022-10 LONG, AUDUSD 2022-10 SHORT A+ koherent.
-- [ ] sp500, nasdaq
-- [ ] btcusd, ethusd
+- [x] **sp500 / nasdaq** — makro-regime: HY-kredittspread, 10y-rente-momentum, rentekurve (10y−2y),
+      COT. VIX bevisst utelatt (sirkulær med indeksen). Nasdaq tyngre rente-vekt (durasjon).
+      Verifisert: SP500 2020-03 LONG A+ (COVID-bunn), 2022-06 SHORT A+.
+- [x] **btcusd / ethusd** — dollar-likviditet, VIX risk-sentiment, COT. Dokumentert: krypto har svakest
+      fundamentalt grunnlag (flyt/narrativ; spot-ETF-flyt usynlig). BTC 2022-06 SHORT A (Luna-krasj).
+- ✅ **ALLE 22 INSTRUMENTER NÅ HÅNDTILPASSET** — `gen_universe_fingerprints.py` SPEC er tom (no-op).

@@ -1,37 +1,31 @@
+# S&P 500 — håndtilpasset, fundamentalt (ingen generisk pris-trend).
+# Aksjeindekser er vanskelige å forutsi fundamentalt på 30–120d (effisient marked); de ærlige
+# driverne er makro-regime (risk-appetitt, diskonteringsrente, syklus) + posisjonering.
+#   1) HY-kredittspread: lav (trang) = risk-on = bullish.
+#   2) 10y-rente-momentum: stigende lange renter = diskonterings-motvind = bearish.
+#   3) Rentekurve (10y−2y): invertert (lav) = resesjonsrisiko = bearish forward.
+#   4) Spekulant-posisjonering (E-mini S&P 500): trend-bekreftende.
+# NB: VIX bevisst UTELATT (= SPX' egen implisitte vol → sirkulær). HY-spread grunn (2023→).
 id: SP500
 ticker: SPX500
 asset_class: index
 drivers:
-- name: level_percentile
-  weight: 0.3
-  params:
-    series: BAMLH0A0HYM2
-    lookback_days: 504
-    bull_when: low
-- name: cot_spec_net_percentile
-  weight: 0.2
-  params:
-    market: SP500
-    lookback_weeks: 156
-    bull_when: high
-- name: price_vs_sma
-  weight: 0.3
-  params:
-    symbol: SPX500
-    window: 200
-    tf: D1
-- name: price_momentum
-  weight: 0.2
-  params:
-    symbol: SPX500
-    horizon_days: 20
-grade_thresholds:
-  A_plus: 0.55
-  A: 0.4
-  B: 0.25
-base_rate:
-  horizon_days: 30
-  band: 0.1
-  min_effective_n: 30
-  min_hit_rate_pct: 55
-  min_expectancy_r: 0.3
+  # HY-kredittspread: lav = risk-on = bullish (bull_when low). Grunn (2023→).
+  - name: level_percentile
+    weight: 0.30
+    params: {series: BAMLH0A0HYM2, lookback_days: 504, bull_when: low}
+  # 10y-rente-momentum: stigende = diskonterings-motvind = bearish (bull_when low). Dyp (1962→).
+  - name: momentum
+    weight: 0.20
+    params: {series: DGS10, horizon_days: 21, bull_when: low}
+  # Rentekurve 10y−2y: invertert (lav) = resesjonsrisiko = bearish (bull_when high). Dyp (1976→).
+  - name: series_spread_percentile
+    weight: 0.25
+    params: {minuend: DGS10, subtrahend: DGS2, lookback_days: 504, bull_when: high}
+  # Spekulant netto-posisjonering (E-mini S&P 500), trend-bekreftende. Grunn (2022→).
+  - name: cot_spec_net_percentile
+    weight: 0.25
+    params: {market: SP500, lookback_weeks: 156, bull_when: high}
+grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
+base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
+            min_hit_rate_pct: 55, min_expectancy_r: 0.3}

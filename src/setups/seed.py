@@ -110,14 +110,14 @@ SEED_MAP: dict[str, dict] = {
                "macro_series": ["DGS10", "IRLTLT01AUM156N", "DTWEXBGS", "VIXCLS"]},
     # Indeks
     "SP500": {"cot": {"types": ["tff", "legacy"], "contracts": ["E-MINI S&P 500"]},
-              "macro_series": ["BAMLH0A0HYM2", "VIXCLS"]},
+              "macro_series": ["BAMLH0A0HYM2", "DGS10", "DGS2"]},
     "Nasdaq": {"cot": {"types": ["tff", "legacy"], "contracts": ["NASDAQ-100"]},
-               "macro_series": ["BAMLH0A0HYM2", "VIXCLS"]},
-    # Krypto (CME COT; lite makro-relevans → pris + posisjonering)
+               "macro_series": ["BAMLH0A0HYM2", "DGS10", "DGS2"]},
+    # Krypto (CME COT; høy-beta risk → dollar-likviditet + risk-sentiment + posisjonering)
     "BTCUSD": {"cot": {"types": ["tff", "legacy"], "contracts": ["BITCOIN"]},
-               "macro_series": []},
+               "macro_series": ["DTWEXBGS", "VIXCLS"]},
     "ETHUSD": {"cot": {"types": ["tff", "legacy"], "contracts": ["ETHER"]},
-               "macro_series": []},
+               "macro_series": ["DTWEXBGS", "VIXCLS"]},
 }
 
 

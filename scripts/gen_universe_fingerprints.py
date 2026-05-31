@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Generer skreddersydde fingerprint-YAML for hele universet fra én kompakt spec.
+"""Generator for generiske fingerprint-YAML — NÅ TOM (alle 22 instrumenter håndtilpasset).
 
-Domeneriktige drivere pr instrument (COT-retning korrekt pr symbol — f.eks. JPY-futures
-er invertert mot USDJPY). Låste base-rate-terskler.
+Historisk bootstrappet dette de generiske fingerprintene. Etter instrument-tilpasningen
+(2026-05-31) er ALLE instrumenter håndskrevet i config/instruments/ med ekte, instrument-
+spesifikke fundamentale drivere, så SPEC er bevisst tom og scriptet er et no-op. Beholdt som
+mal hvis nye instrumenter skal bootstrappes generisk før de håndtilpasses.
 Kjør:  python scripts/gen_universe_fingerprints.py
-Gull/EURUSD/Kaffe/Sugar røres ikke (håndtilpasset med instrument-spesifikke drivere).
 """
 from __future__ import annotations
 
@@ -59,18 +60,7 @@ SPEC = [
     #   *USD-par (EUR/GBP/AUD): sterk USD = par NED → bull_when low; COT long utenl. = bull par.
     #   USDJPY (USD-base): sterk USD = par OPP → bull_when high; COT long JPY = bear par → low.
     # (GBPUSD/USDJPY/AUDUSD håndtilpasset i config/instruments/ — fjernet herfra.)
-    # Indeks — kredittspread-regime (lav = risk-on)
-    ("SP500", "SPX500", "index",
-     [macro_lvl("BAMLH0A0HYM2", 0.30, "low"), cot("SP500", 0.20, "high"), trend("SPX500", 0.30),
-      mom("SPX500", 0.20)]),
-    ("Nasdaq", "US100", "index",
-     [macro_lvl("BAMLH0A0HYM2", 0.30, "low"), cot("Nasdaq", 0.20, "high"), trend("US100", 0.30),
-      mom("US100", 0.20)]),
-    # Krypto — pris + posisjonering
-    ("BTCUSD", "Bitcoin", "crypto",
-     [cot("BTCUSD", 0.25, "high"), trend("Bitcoin", 0.40), mom("Bitcoin", 0.35)]),
-    ("ETHUSD", "Ethereum", "crypto",
-     [cot("ETHUSD", 0.25, "high"), trend("Ethereum", 0.40), mom("Ethereum", 0.35)]),
+    # (Indeks + krypto håndtilpasset i config/instruments/ — fjernet herfra.)
 ]
 
 

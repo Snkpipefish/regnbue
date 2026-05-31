@@ -1,37 +1,30 @@
+# Nasdaq 100 — håndtilpasset, fundamentalt (ingen generisk pris-trend).
+# Som SP500, men mer rente-/durasjons-sensitiv (lang-durasjon tech) → tyngre vekt på renter.
+#   1) HY-kredittspread: lav = risk-on = bullish.
+#   2) 10y-rente-momentum: stigende lange renter = sterk motvind for tech-durasjon = bearish.
+#   3) Rentekurve (10y−2y): invertert = resesjonsrisiko = bearish forward.
+#   4) Spekulant-posisjonering (Nasdaq-100): trend-bekreftende.
+# NB: VIX bevisst UTELATT (sirkulær med indeksen). HY-spread grunn (2023→).
 id: Nasdaq
 ticker: US100
 asset_class: index
 drivers:
-- name: level_percentile
-  weight: 0.3
-  params:
-    series: BAMLH0A0HYM2
-    lookback_days: 504
-    bull_when: low
-- name: cot_spec_net_percentile
-  weight: 0.2
-  params:
-    market: Nasdaq
-    lookback_weeks: 156
-    bull_when: high
-- name: price_vs_sma
-  weight: 0.3
-  params:
-    symbol: US100
-    window: 200
-    tf: D1
-- name: price_momentum
-  weight: 0.2
-  params:
-    symbol: US100
-    horizon_days: 20
-grade_thresholds:
-  A_plus: 0.55
-  A: 0.4
-  B: 0.25
-base_rate:
-  horizon_days: 30
-  band: 0.1
-  min_effective_n: 30
-  min_hit_rate_pct: 55
-  min_expectancy_r: 0.3
+  # HY-kredittspread: lav = risk-on = bullish (bull_when low). Grunn (2023→).
+  - name: level_percentile
+    weight: 0.25
+    params: {series: BAMLH0A0HYM2, lookback_days: 504, bull_when: low}
+  # 10y-rente-momentum: stigende = tech-durasjons-motvind = bearish (bull_when low). Dyp (1962→).
+  - name: momentum
+    weight: 0.30
+    params: {series: DGS10, horizon_days: 21, bull_when: low}
+  # Rentekurve 10y−2y: invertert (lav) = resesjonsrisiko = bearish (bull_when high). Dyp (1976→).
+  - name: series_spread_percentile
+    weight: 0.20
+    params: {minuend: DGS10, subtrahend: DGS2, lookback_days: 504, bull_when: high}
+  # Spekulant netto-posisjonering (Nasdaq-100), trend-bekreftende. Dyp (2016→).
+  - name: cot_spec_net_percentile
+    weight: 0.25
+    params: {market: Nasdaq, lookback_weeks: 156, bull_when: high}
+grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
+base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
+            min_hit_rate_pct: 55, min_expectancy_r: 0.3}

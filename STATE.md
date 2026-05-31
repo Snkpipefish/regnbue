@@ -2,7 +2,7 @@
 
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
-**Sist oppdatert:** 2026-05-31 (17 instr tilpasset: + FX gbpusd/usdjpy/audusd)
+**Sist oppdatert:** 2026-05-31 (ALLE 22 instrumenter fundamentalt tilpasset — instrument-tilpasning FERDIG)
 **Nåværende fase:** MVP live + scenario-generator bygget. **Neste: instrument-tilpasning for resten (egne drivere pr instrument).**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
@@ -73,7 +73,12 @@ ingen setup uten statistisk støtte.
   fra FRED, 1990→), Fed-forventninger (US 2y) / dollar, COT, VIX. VIX-fortegn pr valuta: yen styrkes &
   AUD selges i risk-off. Fjernet `price_vs_sma`. NB: carry-modeller misfyrer i USD-likviditetskriser
   (GBP 2020-03) — tunes IKKE etter resultat.
-- ⚠️ **4 øvrige** (sp500, nasdaq, btcusd, ethusd) — generisk, gen_universe_fingerprints.py.
+- ✅ **sp500 / nasdaq** (2026-05-31) — makro-regime: HY-kredittspread, 10y-rente-momentum, rentekurve
+  (10y−2y), COT. VIX bevisst utelatt (= SPX' egen implisitte vol → sirkulær). Verifisert: SP500 2020-03
+  LONG A+ (COVID-bunn), 2022-06 SHORT A+.
+- ✅ **btcusd / ethusd** (2026-05-31) — dollar-likviditet, VIX risk-sentiment, COT. Dokumentert svakest
+  fundamentale grunnlag (flyt/narrativ; spot-ETF-flyt usynlig). VIX ikke sirkulær her (aksje-avledet).
+- 🎉 **ALLE 22 HÅNDTILPASSET** — `gen_universe_fingerprints.py` SPEC tom (no-op, beholdt som mal).
 
 ### Gjenbrukbare drivere (registrert i `score/drivers.py`)
 `level_percentile`, `momentum`, `price_momentum`, `series_spread_percentile`, `price_vs_sma`,

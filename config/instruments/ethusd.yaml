@@ -1,31 +1,25 @@
+# Ethereum — håndtilpasset, fundamentalt (ingen generisk pris-trend).
+# Som Bitcoin: svakt fundamentalt grunnlag (flyt/narrativ); makro-likviditet + risk-regime +
+# posisjonering er de forsvarlige driverne. ETH er enda høyere beta enn BTC i risk-off.
+#   1) Bred dollar: svak USD = løs likviditet = bullish.
+#   2) Risk-sentiment (VIX): risk-off = ETH (høy-beta) selges = bearish.
+#   3) Spekulant-posisjonering (CME Ether): trend-bekreftende.
 id: ETHUSD
 ticker: Ethereum
 asset_class: crypto
 drivers:
-- name: cot_spec_net_percentile
-  weight: 0.25
-  params:
-    market: ETHUSD
-    lookback_weeks: 156
-    bull_when: high
-- name: price_vs_sma
-  weight: 0.4
-  params:
-    symbol: Ethereum
-    window: 200
-    tf: D1
-- name: price_momentum
-  weight: 0.35
-  params:
-    symbol: Ethereum
-    horizon_days: 20
-grade_thresholds:
-  A_plus: 0.55
-  A: 0.4
-  B: 0.25
-base_rate:
-  horizon_days: 30
-  band: 0.1
-  min_effective_n: 30
-  min_hit_rate_pct: 55
-  min_expectancy_r: 0.3
+  # Bred handelsvektet dollar opp = strammere likviditet = bearish (bull_when low). Dyp (2006→).
+  - name: momentum
+    weight: 0.30
+    params: {series: DTWEXBGS, horizon_days: 21, bull_when: low}
+  # Risk-sentiment: høy VIX = risk-off = ETH selges = bearish (bull_when low). Dyp (2010→).
+  - name: level_percentile
+    weight: 0.30
+    params: {series: VIXCLS, lookback_days: 504, bull_when: low}
+  # Spekulant netto-posisjonering (CME Ether), trend-bekreftende. 2021→.
+  - name: cot_spec_net_percentile
+    weight: 0.40
+    params: {market: ETHUSD, lookback_weeks: 156, bull_when: high}
+grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
+base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
+            min_hit_rate_pct: 55, min_expectancy_r: 0.3}
