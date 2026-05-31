@@ -102,6 +102,15 @@ ingen setup uten statistisk støtte.
   Resultat: **Chronos vinner 20/22** på OOS-CRPS. → `web/data/scenario_models.json`. Faller til FHS uten torch.
 - `clean.py` — reparerer skala-glitcher (fikset 50 SPX500-barer ×10-feil); kjøres i `update.sh` etter henting.
 
+## Ytelse (panel-bygging)
+- `build_panel` re-scorer pr dato → tungt. `run.py` sampler hver `PANEL_STEP=10`. dag (ytelse, ikke
+  terskel-tuning). Vær-driverne cacher nå rullende vindu pr region (`_WEATHER_ROLL_CACHE` i drivers.py):
+  full historikk regnes én gang, as_of indekseres med bisect → **identiske resultater** (verifisert mot
+  gammel kode + look-ahead-test), ~2–4× raskere på vær-instrumenter (natgas 11→2.9s).
+- **Gjenstående flaskehals:** dype IKKE-vær-drivere (etf_flow, series_spread/ratio, level/momentum på
+  gull/sølv/FX) itererer fortsatt full historikk pr kall. Samme cache-grep kan utvides dit ved behov for
+  å la `PANEL_STEP` settes lavere (tettere base-rate-paneler).
+
 ## Drift / kommandoer
 - Pipeline (setups.json): `python -m setups.run` · publiser: `./update.sh` (henter+vasker+kjører+pusher).
 - Re-seed: `python -m setups.seed` · priser: `python -m setups.ctrader_prices <TICKERE> --years 15` (alle 22 i db nå).

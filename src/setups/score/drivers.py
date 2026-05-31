@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import math
 import statistics
+from bisect import bisect_right
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date, timedelta
@@ -71,6 +72,87 @@ def _within_lookback(series: list[tuple[str, float]], as_of: str,
 def _miss(name: str, why: str, params: dict) -> DriverResult:
     return DriverResult(name=name, ok=False, score=0.0, detail=f"mangler data: {why}",
                         params=params)
+
+
+def _doy_dist(a: int, b: int) -> int:
+    """Sirkulær avstand mellom to dag-i-året (1..366)."""
+    d = abs(a - b)
+    return min(d, 366 - d)
+
+
+# --- cache for per-region rullende vær-vindu ---------------------------------------------
+# Panel-bygging re-scorer hvert instrument på HVER historisk dato; uten cache itererer hver
+# vær-driver hele den daglige historikken pr kall. Rullende vindu er bakoverskuende, så
+# roll[i] avhenger kun av data ≤ i: vi regner full-historikk-rullingen ÉN gang og indekserer
+# as_of med bisect (leser kun [0..idx]). Resultatene er IDENTISKE med å regne ≤as_of pr kall.
+# Nøkkelen inkluderer en innholds-signatur (count,min,max) så ulike datasett/databaser (f.eks.
+# separate test-conns med samme region-navn) aldri kolliderer, og endret data gir ny nøkkel.
+_WEATHER_ROLL_CACHE: dict = {}
+
+
+def _rolling_sum(vals: list[float], window: int) -> list[float]:
+    from collections import deque
+    out: list[float] = []
+    acc = 0.0
+    q: deque[float] = deque()
+    for v in vals:
+        q.append(v)
+        acc += v
+        if len(q) > window:
+            acc -= q.popleft()
+        out.append(acc)
+    return out
+
+
+def _rolling_min(vals: list[float], window: int) -> list[float]:
+    from collections import deque
+    out: list[float] = []
+    q: deque[float] = deque()
+    for v in vals:
+        q.append(v)
+        if len(q) > window:
+            q.popleft()
+        out.append(min(q))
+    return out
+
+
+def _cached_weather_roll(conn, region: str, kind: str, window: int,
+                         base: float | None = None) -> tuple[list[str], list[int], list[float]]:
+    """(datoer, dag-i-året, rullende-vindu) for HELE regionens vær-historikk, cachet.
+
+    kind: 'precip_sum' (nedbør-sum) | 'tmin_min' (kaldeste natt) | 'ddays_sum' (degree-days
+    |døgnmiddel−base|-sum). Identiske rad-filtre som ScoreContext-aksessorene, så indeksene
+    matcher en ≤as_of-spørring eksakt.
+    """
+    sig = conn.execute(
+        "SELECT COUNT(*), MIN(date), MAX(date) FROM weather WHERE region=?", (region,)
+    ).fetchone()
+    key = (region, kind, window, base, tuple(sig))
+    hit = _WEATHER_ROLL_CACHE.get(key)
+    if hit is not None:
+        return hit
+    if kind == "precip_sum":
+        rows = conn.execute(
+            "SELECT date, precip FROM weather WHERE region=? AND precip IS NOT NULL ORDER BY date",
+            (region,)).fetchall()
+        roll = _rolling_sum([r[1] for r in rows], window)
+    elif kind == "tmin_min":
+        rows = conn.execute(
+            "SELECT date, tmin FROM weather WHERE region=? AND tmin IS NOT NULL ORDER BY date",
+            (region,)).fetchall()
+        roll = _rolling_min([r[1] for r in rows], window)
+    elif kind == "ddays_sum":
+        rows = conn.execute(
+            "SELECT date, (tmax+tmin)/2.0 FROM weather WHERE region=? "
+            "AND tmax IS NOT NULL AND tmin IS NOT NULL ORDER BY date", (region,)).fetchall()
+        roll = _rolling_sum([abs(r[1] - base) for r in rows], window)
+    else:
+        raise ValueError(f"ukjent kind: {kind}")
+    dates = [r[0] for r in rows]
+    doys = [date.fromisoformat(d).timetuple().tm_yday for d in dates]
+    out = (dates, doys, roll)
+    _WEATHER_ROLL_CACHE[key] = out
+    return out
 
 
 # --- drivere ---
@@ -279,34 +361,16 @@ def rainfall_anomaly(ctx: ScoreContext, params: dict) -> DriverResult:
     region = params.get("region", "brazil_cs_cane")
     win = params.get("window_days", 30)
     seasonal_halfwidth = params.get("seasonal_halfwidth", 15)
-    series = ctx.weather_precip(region)
-    if len(series) < 365 * 3:
+    dates, doys, roll = _cached_weather_roll(ctx.conn, region, "precip_sum", win)
+    idx = bisect_right(dates, ctx.as_of) - 1  # siste dato ≤ as_of (look-ahead-trygt)
+    if idx + 1 < 365 * 3:
         return _miss("rainfall_anomaly", region, params)
 
-    dates = [date.fromisoformat(d) for d, _ in series]
-    vals = [v for _, v in series]
-    # Rullerende vindu-sum (krever ~sammenhengende daglige data fra Open-Meteo).
-    from collections import deque
-    roll: list[float] = []
-    acc = 0.0
-    q: deque[float] = deque()
-    for v in vals:
-        q.append(v)
-        acc += v
-        if len(q) > win:
-            acc -= q.popleft()
-        roll.append(acc)
-
-    cur_doy = dates[-1].timetuple().tm_yday
-    cur_sum = roll[-1]
-
-    def _doy_dist(a: int, b: int) -> int:
-        d = abs(a - b)
-        return min(d, 366 - d)
-
+    cur_doy = doys[idx]
+    cur_sum = roll[idx]
     # Sesong-baseline: vindu-summer på samme tid på året i tidligere år (ikke siste 60 dager).
-    baseline = [roll[i] for i in range(len(roll) - 60)
-                if _doy_dist(dates[i].timetuple().tm_yday, cur_doy) <= seasonal_halfwidth]
+    baseline = [roll[i] for i in range(idx + 1 - 60)
+                if _doy_dist(doys[i], cur_doy) <= seasonal_halfwidth]
     if len(baseline) < 20:
         return _miss("rainfall_anomaly", "for tynt sesong-grunnlag", params)
 
@@ -337,32 +401,15 @@ def degree_days_anomaly(ctx: ScoreContext, params: dict) -> DriverResult:
     base = params.get("comfort_base_c", 18.0)
     win = params.get("window_days", 14)
     seasonal_halfwidth = params.get("seasonal_halfwidth", 15)
-    series = ctx.weather_tmean(region)
-    if len(series) < 365 * 3:
+    dates, doys, roll = _cached_weather_roll(ctx.conn, region, "ddays_sum", win, base=base)
+    idx = bisect_right(dates, ctx.as_of) - 1  # siste dato ≤ as_of (look-ahead-trygt)
+    if idx + 1 < 365 * 3:
         return _miss("degree_days_anomaly", region, params)
 
-    dates = [date.fromisoformat(d) for d, _ in series]
-    dd = [abs(v - base) for _, v in series]  # degree-days (HDD+CDD)
-    from collections import deque
-    roll: list[float] = []
-    acc = 0.0
-    q: deque[float] = deque()
-    for v in dd:
-        q.append(v)
-        acc += v
-        if len(q) > win:
-            acc -= q.popleft()
-        roll.append(acc)
-
-    cur_doy = dates[-1].timetuple().tm_yday
-    cur_sum = roll[-1]
-
-    def _doy_dist(a: int, b: int) -> int:
-        d = abs(a - b)
-        return min(d, 366 - d)
-
-    baseline = [roll[i] for i in range(len(roll) - 30)
-                if _doy_dist(dates[i].timetuple().tm_yday, cur_doy) <= seasonal_halfwidth]
+    cur_doy = doys[idx]
+    cur_sum = roll[idx]
+    baseline = [roll[i] for i in range(idx + 1 - 30)
+                if _doy_dist(doys[i], cur_doy) <= seasonal_halfwidth]
     if len(baseline) < 20:
         return _miss("degree_days_anomaly", "for tynt sesong-grunnlag", params)
     mean = statistics.fmean(baseline)
@@ -391,10 +438,6 @@ def seasonal_anomaly(ctx: ScoreContext, params: dict) -> DriverResult:
     seasonal_halfwidth = params.get("seasonal_halfwidth", 10)
     cur_doy = dates[-1].timetuple().tm_yday
     cur = vals[-1]
-
-    def _doy_dist(a: int, b: int) -> int:
-        d = abs(a - b)
-        return min(d, 366 - d)
 
     # Sesong-baseline: samme tid på året i tidligere perioder (ekskluder siste ~30 dager).
     baseline = [vals[i] for i in range(len(vals) - 30)
@@ -457,31 +500,15 @@ def frost_anomaly(ctx: ScoreContext, params: dict) -> DriverResult:
     win = params.get("window_days", 10)
     seasonal_halfwidth = params.get("seasonal_halfwidth", 15)
     abs_gate = params.get("abs_cold_gate_c", 10.0)
-    series = ctx.weather_tmin(region)
-    if len(series) < 365 * 3:
+    dates, doys, roll_min = _cached_weather_roll(ctx.conn, region, "tmin_min", win)
+    idx = bisect_right(dates, ctx.as_of) - 1  # siste dato ≤ as_of (look-ahead-trygt)
+    if idx + 1 < 365 * 3:
         return _miss("frost_anomaly", region, params)
 
-    dates = [date.fromisoformat(d) for d, _ in series]
-    vals = [v for _, v in series]
-    # Rullerende minimum (kaldeste natt) over vinduet.
-    from collections import deque
-    roll_min: list[float] = []
-    q: deque[float] = deque()
-    for v in vals:
-        q.append(v)
-        if len(q) > win:
-            q.popleft()
-        roll_min.append(min(q))
-
-    cur_doy = dates[-1].timetuple().tm_yday
-    cur_min = roll_min[-1]
-
-    def _doy_dist(a: int, b: int) -> int:
-        d = abs(a - b)
-        return min(d, 366 - d)
-
-    baseline = [roll_min[i] for i in range(len(roll_min) - 60)
-                if _doy_dist(dates[i].timetuple().tm_yday, cur_doy) <= seasonal_halfwidth]
+    cur_doy = doys[idx]
+    cur_min = roll_min[idx]
+    baseline = [roll_min[i] for i in range(idx + 1 - 60)
+                if _doy_dist(doys[i], cur_doy) <= seasonal_halfwidth]
     if len(baseline) < 20:
         return _miss("frost_anomaly", "for tynt sesong-grunnlag", params)
 

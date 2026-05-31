@@ -229,6 +229,22 @@ def test_rainfall_anomaly_gated_out_of_season(conn):
     assert res.ok and res.score == 0.0  # utenfor sesong → ingen signal
 
 
+def test_rainfall_cache_lookahead_and_invalidation(conn):
+    # Cachen regner full historikk; et score ≤D må IKKE endres av vær lagt til ETTER D,
+    # og cachen må re-nøkles når data endres (innholds-signatur). Begge bevises her.
+    last = _seed_drought_precip(conn, "us_cornbelt")
+    d0 = date.fromisoformat(last)
+    params = {"region": "us_cornbelt", "window_days": 30}
+    before = rainfall_anomaly(ScoreContext(conn, as_of=last), params).score
+    # Legg til 200 framtidige dager (vått) ETTER beslutningsdatoen.
+    for i in range(1, 201):
+        d = (d0 + timedelta(days=i)).isoformat()
+        conn.execute("INSERT OR REPLACE INTO weather(region,date,precip) VALUES (?,?,?)",
+                     ("us_cornbelt", d, 50.0))
+    after = rainfall_anomaly(ScoreContext(conn, as_of=last), params).score
+    assert before == after  # framtids-data lekker ikke inn i scoret ved D (look-ahead-trygt)
+
+
 def test_spread_percentile_low_is_bullish(conn):
     # Realrente-proxy: DGS10 faller, T10YIE flat → spread synker til bunn-nivå.
     dates = _days(25)
