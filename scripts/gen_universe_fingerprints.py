@@ -51,9 +51,7 @@ def spread(minu, sub, weight, bull="low"):
 SPEC = [
     # Metaller — realrente (gull/sølv), DXY/industriell
     # (Silver håndtilpasset i config/instruments/silver.yaml — fjernet herfra.)
-    ("Platinum", "PLATINUM", "metals",
-     [macro_mom("DTWEXBGS", 0.20, "low"), cot("Platinum", 0.25), trend("PLATINUM", 0.30),
-      mom("PLATINUM", 0.25)]),
+    # (Platinum håndtilpasset i config/instruments/platinum.yaml — fjernet herfra.)
     ("Copper", "COPPER", "metals",
      [macro_lvl("BAMLH0A0HYM2", 0.20, "low"), cot("Copper", 0.25), trend("COPPER", 0.30),
       mom("COPPER", 0.25)]),

@@ -320,6 +320,40 @@ def rainfall_anomaly(ctx: ScoreContext, params: dict) -> DriverResult:
                         f"{region} {win}d-nedbør {kind} z={z:+.2f}", params)
 
 
+@register("price_ratio")
+def price_ratio(ctx: ScoreContext, params: dict) -> DriverResult:
+    """Z-skåret relativverdi mellom to NIVÅ-feed-symboler (teller/nevner).
+
+    Relativverdi-/substitusjons-driver, IKKE pris-trend: f.eks. platinum/gull. Lav ratio
+    (bull_when low) = platinum historisk billig vs gull → substitusjon i autokatalysatorer →
+    mean-reversion bullish platinum. Forholdet forward-fylles på felles datoer og z-skåres
+    mot egen historikk. Egen, frisk implementasjon.
+    """
+    from bisect import bisect_right
+
+    a = ctx.closes(params["numerator"], params.get("tf", "D1"))
+    b = ctx.closes(params["denominator"], params.get("tf", "D1"))
+    if len(a) < 30 or len(b) < 30:
+        return _miss("price_ratio", f"{params['numerator']}/{params['denominator']}", params)
+    bdates = [d[:10] for d, _ in b]
+    bvals = [v for _, v in b]
+    ratios: list[float] = []
+    for ts, av in a:
+        i = bisect_right(bdates, ts[:10]) - 1
+        if i >= 0 and bvals[i]:
+            ratios.append(av / bvals[i])
+    if len(ratios) < 30:
+        return _miss("price_ratio", "for kort overlapp", params)
+    cur = ratios[-1]
+    mean = statistics.fmean(ratios)
+    sd = statistics.pstdev(ratios) or 1e-9
+    z = (cur - mean) / sd
+    score = math.tanh(z) * _sign(params.get("bull_when", "high"))
+    return DriverResult("price_ratio", True, round(score, 4), round(cur, 4),
+                        f"{params['numerator']}/{params['denominator']} {cur:.3f} (z={z:+.2f})",
+                        params)
+
+
 @register("frost_anomaly")
 def frost_anomaly(ctx: ScoreContext, params: dict) -> DriverResult:
     """Frost-risiko: anomalt kald natt i et kaffe-/avlingsbelte = tilbudssjokk = bullish.

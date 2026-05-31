@@ -12,6 +12,7 @@ from setups.score.drivers import (
     cot_spec_net_percentile,
     etf_flow,
     frost_anomaly,
+    price_ratio,
     price_vs_sma,
     series_spread_percentile,
 )
@@ -138,6 +139,22 @@ def test_frost_anomaly_summer_coolspell_gated_to_zero(conn):
     ctx = ScoreContext(conn, as_of=cool_day)
     res = frost_anomaly(ctx, {"region": "brazil_sul_minas", "window_days": 10})
     assert res.ok and res.score == 0.0  # abs-gate hindrer falsk sommer-utslag
+
+
+def test_price_ratio_low_is_bullish(conn):
+    # Pt/Au-forhold synker til historisk bunn; bull_when low → mean-reversion bullish.
+    dates = _days(60)
+    for i, d in enumerate(dates):
+        au = 1000.0  # gull flat
+        pt = 900.0 - i * 5.0  # platina faller → ratio synker til bunn
+        for sym, px in (("PLATINUM", pt), ("GOLD", au)):
+            conn.execute(
+                "INSERT INTO prices(symbol,tf,ts,open,high,low,close) VALUES (?,?,?,?,?,?,?)",
+                (sym, "D1", f"{d}T00:00:00Z", px, px, px, px),
+            )
+    ctx = ScoreContext(conn, as_of=dates[-1])
+    res = price_ratio(ctx, {"numerator": "PLATINUM", "denominator": "GOLD", "bull_when": "low"})
+    assert res.ok and res.score > 0.5  # ratio på bunn + bull_when low → bullish
 
 
 def test_spread_percentile_low_is_bullish(conn):

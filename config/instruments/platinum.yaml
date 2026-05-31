@@ -1,37 +1,32 @@
+# Platina — håndtilpasset, fundamentalt (ingen generisk pris-trend).
+# Årsakskjede (research 2026-05): platina drives av strukturelt tilbudsunderskudd (Sør-Afrika
+# 73% av tilbud), autokatalysator-etterspørsel + substitusjon fra palladium, og relativverdi mot gull.
+#   1) Platina/gull-forhold (~0.49×): historisk lavt = platina billig vs gull → substitusjon →
+#      mean-reversion bullish (relativverdi, IKKE pris-trend).
+#   2) Spekulant-posisjonering (NYMEX Platinum): trend-bekreftende.
+#   3) Bred dollar: svak USD = bullish (USD-priset metall).
+#   4) Realrente: edelmetall-karakter (mindre enn gull/sølv, så lav vekt).
+# NB: Sør-Afrika-tilbud (ZAR, Eskom-strøm) er den sterkeste driveren men vi mangler DYP data → utelatt.
 id: Platinum
 ticker: PLATINUM
 asset_class: metals
 drivers:
-- name: momentum
-  weight: 0.2
-  params:
-    series: DTWEXBGS
-    horizon_days: 21
-    bull_when: low
-- name: cot_spec_net_percentile
-  weight: 0.25
-  params:
-    market: Platinum
-    lookback_weeks: 156
-    bull_when: high
-- name: price_vs_sma
-  weight: 0.3
-  params:
-    symbol: PLATINUM
-    window: 200
-    tf: D1
-- name: price_momentum
-  weight: 0.25
-  params:
-    symbol: PLATINUM
-    horizon_days: 20
-grade_thresholds:
-  A_plus: 0.55
-  A: 0.4
-  B: 0.25
-base_rate:
-  horizon_days: 30
-  band: 0.1
-  min_effective_n: 30
-  min_hit_rate_pct: 55
-  min_expectancy_r: 0.3
+  # Platina/gull relativverdi (mean-reversion/substitusjon). Lav = billig vs gull = bullish. Dyp (2011→).
+  - name: price_ratio
+    weight: 0.30
+    params: {numerator: PLATINUM, denominator: GOLD, tf: D1, bull_when: low}
+  # Spekulant netto-posisjonering (NYMEX Platinum), trend-bekreftende. Dyp (2010→).
+  - name: cot_spec_net_percentile
+    weight: 0.25
+    params: {market: Platinum, lookback_weeks: 156, bull_when: high}
+  # Bred handelsvektet dollar opp = motvind. 21d-momentum. Dyp (2006→).
+  - name: momentum
+    weight: 0.25
+    params: {series: DTWEXBGS, horizon_days: 21, bull_when: low}
+  # Realrente = DGS10 − T10YIE (edelmetall-karakter, lav vekt). Lav = bullish. Dyp (2003→).
+  - name: series_spread_percentile
+    weight: 0.20
+    params: {minuend: DGS10, subtrahend: T10YIE, lookback_days: 504, bull_when: low}
+grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
+base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
+            min_hit_rate_pct: 55, min_expectancy_r: 0.3}
