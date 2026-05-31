@@ -30,8 +30,12 @@ forankret i online-research, og bruk **kun data vi faktisk har / kan hente**. Et
 4. **Skriv fingerprintet for hånd** i `config/instruments/<id>.yaml` — KUN fundamentale drivere.
    **Fjern instrumentet fra `scripts/gen_universe_fingerprints.py` SPEC** så det ikke overskrives.
 5. **Verifiser:** score ende-til-ende på flere historiske datoer (alle drivere ok / faller pent til NA).
-6. (Valgfritt) **Scenario/kalibrering:** `setups.scenario`/`scenario_arbitrate` gir det *ærlige*
-   forward-bildet (fordeling). NB funn under: fundamental-score forutsier IKKE retning godt — vær ærlig.
+6. (Valgfritt) **Scenario/kalibrering:** `setups.scenario`/`scenario_arbitrate` gir forward-fordelingen.
+   NB funn under: fundamental-score forutsier IKKE retning godt — valider OOS før du tror på noe.
+
+**Rapporteringsregel (etterprøvbar, ikke moralsk):** valider OOS; oppgi n + konfidensintervall; juster
+ALDRI terskler/likhet etter å ha sett resultater; marker tydelig når noe ikke har påvist edge; publiser
+ingen setup uten statistisk støtte.
 
 ### Hånd-tilpasset status
 - ✅ **Sugar** — ferdig som PROSESS-EKSEMPEL (ikke driver-mal). Sukker-unike drivere: `series_ratio`
@@ -47,7 +51,7 @@ forankret i online-research, og bruk **kun data vi faktisk har / kan hente**. Et
 
 ---
 
-## ÆRLIG HOVEDFUNN (ikke gjenta feilene)
+## HOVEDFUNN (ikke gjenta feilene)
 - **Fundamentale lineære scorer forutsier IKKE forward-avkastning** på 30–120d (kalibrering flat/invertert,
   sjekket for sukker på flere horisonter). Base-rate-gaten publiserer ~0 — det er KORREKT, ikke en bug.
 - **IKKE pirk på terskler/likhet for å tvinge publisering** (= p-hacking på OOS).

@@ -73,7 +73,7 @@ Endres bare ved bevisst ny beslutning. Format: dato — valg — kort begrunnels
 - **2026-05-31 — Scenario-generator = det ærlige forward-produktet:** FHS (vol-filtrert block bootstrap),
   evaluert med CRPS+PIT. Foundation-modell (Chronos) er **gated utfordrer** — tas i bruk pr instrument kun
   der den slår FHS på OOS-CRPS (kalibrerings-arbitrasje). Chronos vant 20/22. `[fm]`-extra (torch) er valgfri.
-- **2026-05-31 — ÆRLIG: fundamentale scorer forutsier ikke forward-retning** (kalibrering flat/invertert,
+- **2026-05-31 — FUNN: fundamentale scorer forutsier ikke forward-retning** (kalibrering flat/invertert,
   30–120d). Retnings-«setups» har ingen påvist edge. Ikke tving publisering. Reell verdi = scenario-fordeling
   + (diversifisert) trendfølging. systemd-timeren deaktivert (ressurssparing).
 
