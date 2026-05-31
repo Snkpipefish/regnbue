@@ -73,7 +73,8 @@ SEED_MAP: dict[str, dict] = {
     # --- utvidet univers (skreddersydde fingerprints, jf. config/instruments/) ---
     # Metaller
     "Silver": {"cot": {"types": ["disaggregated"], "contracts": ["SILVER"]},
-               "macro_series": ["DGS10", "T10YIE", "DTWEXBGS"]},
+               "macro_series": ["DGS10", "T10YIE", "DTWEXBGS"],
+               "etf_tickers": ["slv"]},  # SLV-flyt = investerings-etterspørsel (etf_flow)
     "Platinum": {"cot": {"types": ["disaggregated"], "contracts": ["PLATINUM"]},
                  "macro_series": ["DGS10", "T10YIE", "DTWEXBGS"]},
     "Copper": {"cot": {"types": ["disaggregated"], "contracts": ["COPPER"]},
@@ -264,12 +265,14 @@ def _seed_etf(src: sqlite3.Connection, dst: sqlite3.Connection, candidates: list
         return 0
     placeholders = ",".join("?" * len(tickers))
     rows = src.execute(
-        f"SELECT ticker,date,tonnes_in_trust FROM etf_holdings WHERE ticker IN ({placeholders})",
+        f"SELECT ticker,date,tonnes_in_trust,shares_outstanding FROM etf_holdings "
+        f"WHERE ticker IN ({placeholders})",
         tickers,
     ).fetchall()
     dst.executemany(
-        "INSERT OR REPLACE INTO etf_holdings(ticker,date,tonnes_in_trust) VALUES (?,?,?)",
-        [(r["ticker"], r["date"], r["tonnes_in_trust"]) for r in rows],
+        "INSERT OR REPLACE INTO etf_holdings(ticker,date,tonnes_in_trust,shares_outstanding)"
+        " VALUES (?,?,?,?)",
+        [(r["ticker"], r["date"], r["tonnes_in_trust"], r["shares_outstanding"]) for r in rows],
     )
     _log_seed(dst, "etf_holdings", "etf_holdings", None, len(rows))
     return len(rows)

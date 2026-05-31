@@ -57,10 +57,16 @@ class ScoreContext:
 
     # --- ETF-beholdning (fysisk investerings-flyt) ---
     def etf_holdings(self, ticker: str) -> list[tuple[str, float]]:
-        """(dato, tonnes_in_trust) stigende, kun t.o.m. as_of."""
+        """(dato, beholdnings-enheter) stigende, kun t.o.m. as_of.
+
+        Bruker tonnes_in_trust der det finnes (f.eks. GLD), ellers shares_outstanding
+        (f.eks. SLV som ikke har tonn i kilden). etf_flow er skala-invariant (% endring),
+        så enheten er irrelevant — bare flyt-retningen teller.
+        """
         rows = self.conn.execute(
-            "SELECT date, tonnes_in_trust FROM etf_holdings "
-            "WHERE ticker=? AND date<=? AND tonnes_in_trust IS NOT NULL ORDER BY date",
+            "SELECT date, COALESCE(tonnes_in_trust, shares_outstanding) AS units "
+            "FROM etf_holdings WHERE ticker=? AND date<=? "
+            "AND COALESCE(tonnes_in_trust, shares_outstanding) IS NOT NULL ORDER BY date",
             (ticker, self.as_of),
         ).fetchall()
         return [(r[0], r[1]) for r in rows]

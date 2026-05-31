@@ -1,38 +1,32 @@
+# Sølv — håndtilpasset, fundamentalt (ingen generisk pris-trend).
+# Årsakskjede: sølv er et monetært metall (gulls høy-beta-fetter) + ~50% industriell etterspørsel.
+# Den dype, rene makro-driveren er det monetære komplekset (realrente, dollar, ETF-flyt, COT).
+#   1) Realrente (10y): lav = lav alternativkostnad = bullish (som gull).
+#   2) Bred dollar: svak USD = bullish (USD-priset metall).
+#   3) SLV ETF-beholdning: fysisk investerings-flyt; inn = bullish.
+#   4) Spekulant-posisjonering (COMEX Silver): trend-bekreftende.
+# NB: industriell etterspørsel (solar/elektronikk) er en ekte sølv-driver, men vi mangler en DYP,
+#     ren proxy (kobber-pris/HY-spread er grunne her) → utelatt framfor å bruke grunn data.
 id: Silver
 ticker: SILVER
 asset_class: metals
 drivers:
-- name: series_spread_percentile
-  weight: 0.3
-  params:
-    minuend: DGS10
-    subtrahend: T10YIE
-    lookback_days: 504
-    bull_when: low
-- name: cot_spec_net_percentile
-  weight: 0.25
-  params:
-    market: Silver
-    lookback_weeks: 156
-    bull_when: high
-- name: price_vs_sma
-  weight: 0.25
-  params:
-    symbol: SILVER
-    window: 200
-    tf: D1
-- name: price_momentum
-  weight: 0.2
-  params:
-    symbol: SILVER
-    horizon_days: 20
-grade_thresholds:
-  A_plus: 0.55
-  A: 0.4
-  B: 0.25
-base_rate:
-  horizon_days: 30
-  band: 0.1
-  min_effective_n: 30
-  min_hit_rate_pct: 55
-  min_expectancy_r: 0.3
+  # Realrente = DGS10 − T10YIE. Lav = bullish. Dyp (2003→).
+  - name: series_spread_percentile
+    weight: 0.30
+    params: {minuend: DGS10, subtrahend: T10YIE, lookback_days: 504, bull_when: low}
+  # Bred handelsvektet dollar opp = motvind. 21d-momentum. Dyp (2006→).
+  - name: momentum
+    weight: 0.20
+    params: {series: DTWEXBGS, horizon_days: 21, bull_when: low}
+  # SLV ETF-beholdning (tonn): investerings-flyt, inn = bullish. Dyp (2006→).
+  - name: etf_flow
+    weight: 0.25
+    params: {ticker: slv, horizon_days: 63, bull_when: high}
+  # Spekulant netto-posisjonering (COMEX Silver), trend-bekreftende. Dyp (2010→).
+  - name: cot_spec_net_percentile
+    weight: 0.25
+    params: {market: Silver, lookback_weeks: 156, bull_when: high}
+grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
+base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
+            min_hit_rate_pct: 55, min_expectancy_r: 0.3}

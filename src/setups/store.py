@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS etf_holdings (
     ticker         TEXT NOT NULL,
     date           TEXT NOT NULL,
     tonnes_in_trust REAL,
+    shares_outstanding REAL,   -- flyt-proxy når tonnes mangler (f.eks. SLV)
     PRIMARY KEY (ticker, date)
 );
 
@@ -112,6 +113,10 @@ def connect(db_path: Path | str = DEFAULT_DB_PATH) -> Iterator[sqlite3.Connectio
 def init_db(conn: sqlite3.Connection) -> None:
     """Opprett alle tabeller (idempotent)."""
     conn.executescript(SCHEMA)
+    # Idempotent kolonne-migrasjon for eldre datastore-filer.
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(etf_holdings)")}
+    if "shares_outstanding" not in cols:
+        conn.execute("ALTER TABLE etf_holdings ADD COLUMN shares_outstanding REAL")
 
 
 def table_names(conn: sqlite3.Connection) -> set[str]:

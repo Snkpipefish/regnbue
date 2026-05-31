@@ -50,9 +50,7 @@ def spread(minu, sub, weight, bull="low"):
 # id, ticker (Skilling), asset_class, drivere
 SPEC = [
     # Metaller — realrente (gull/sølv), DXY/industriell
-    ("Silver", "SILVER", "metals",
-     [spread("DGS10", "T10YIE", 0.30, "low"), cot("Silver", 0.25), trend("SILVER", 0.25),
-      mom("SILVER", 0.20)]),
+    # (Silver håndtilpasset i config/instruments/silver.yaml — fjernet herfra.)
     ("Platinum", "PLATINUM", "metals",
      [macro_mom("DTWEXBGS", 0.20, "low"), cot("Platinum", 0.25), trend("PLATINUM", 0.30),
       mom("PLATINUM", 0.25)]),
