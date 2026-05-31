@@ -63,7 +63,8 @@ Endres bare ved bevisst ny beslutning. Format: dato — valg — kort begrunnels
   /retningsvalg for brukeren), IKKE terskel-/likhet-tuning (ville vært p-hacking på OOS).
 
 - **2026-05-31 — Instrument-tilpasning rendyrkes fundamentalt:** hvert instrument får hånd-skrevne,
-  instrument-spesifikke fundamentale drivere (sukker = mal), ingen generisk pris-trend. Hånd-tilpassede
+  instrument-spesifikke fundamentale drivere (sukker er et PROSESS-eksempel, IKKE en driver-mal —
+  sukkerets etanol/cane/Brasil-drivere gjelder ikke andre instrumenter), ingen generisk pris-trend. Hånd-tilpassede
   fingerprints fjernes fra `gen_universe_fingerprints.py` så de ikke overskrives. Data gjenbrukes/seedes
   fra bedrock + hentes ferskt (FRED/Open-Meteo); foretrekk DYPE serier. Avledede dype proxyer der direkte
   data er grunt (sukker: WTI÷IMF-sukker via `series_ratio` i stedet for grunn ANP-paritet).

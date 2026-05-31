@@ -3,7 +3,7 @@
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
 **Sist oppdatert:** 2026-05-31
-**Nåværende fase:** MVP live + scenario-generator bygget. **Neste: instrument-tilpasning (sukker-metoden) for resten.**
+**Nåværende fase:** MVP live + scenario-generator bygget. **Neste: instrument-tilpasning for resten (egne drivere pr instrument).**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
 ---
@@ -12,7 +12,11 @@
 Mål: gi hvert instrument **ekte, instrument-spesifikke fundamentale drivere** (ikke generisk pris-trend),
 forankret i online-research, og bruk **kun data vi faktisk har / kan hente**. Ett instrument om gangen.
 
-### Sukker-metoden (playbook — følg denne pr instrument)
+> VIKTIG: sukker er IKKE en driver-mal. Sukkerets drivere (etanol/cane/Brasil) er unike og
+> gjelder ikke andre instrumenter. Det som er felles er PROSESSEN under — ikke driverne. Hvert
+> instrument må researches på nytt og få sine EGNE drivere.
+
+### Tilpasnings-prosessen (playbook — følg denne pr instrument)
 1. **Research online** (WebSearch/WebFetch): hva beveger *faktisk* instrumentet i den virkelige verden
    (årsakskjede), og hvilken konkret datakilde gir det signalet. Få fortegnet riktig (bull_when).
 2. **Sjekk hva vi har:** `python -m setups.seed --inspect` + spør `data/regnbue.db`
@@ -30,8 +34,9 @@ forankret i online-research, og bruk **kun data vi faktisk har / kan hente**. Et
    forward-bildet (fordeling). NB funn under: fundamental-score forutsier IKKE retning godt — vær ærlig.
 
 ### Hånd-tilpasset status
-- ✅ **Sugar** — fullt fundamentalt tilpasset (mal). Drivere: `series_ratio` (WTI÷IMF-sukker = etanol-incentiv),
-  `rainfall_anomaly` (Brasil C-S, begge ekstremer bullish), ENSO `NOAA_ONI`, BRL `DEXBZUS`, COT, UNICA-mix (overlay).
+- ✅ **Sugar** — ferdig som PROSESS-EKSEMPEL (ikke driver-mal). Sukker-unike drivere: `series_ratio`
+  (WTI÷IMF-sukker = etanol-incentiv), `rainfall_anomaly` (Brasil C-S), ENSO, BRL, COT, UNICA-mix. Andre
+  instrumenter får helt andre drivere.
 - ⚠️ **gold, eurusd, coffee** — håndskrevet men fortsatt semi-generisk (bruker price_vs_sma o.l.). Bør tilpasses ordentlig.
 - ⚠️ **18 øvrige** (silver, platinum, copper, wti, brent, natgas, corn, soybean, wheat, cocoa, cotton,
   gbpusd, usdjpy, audusd, sp500, nasdaq, btcusd, ethusd) — generisk, generert av `gen_universe_fingerprints.py`.
@@ -75,7 +80,6 @@ forankret i online-research, og bruk **kun data vi faktisk har / kan hente**. Et
 - Nøkler i `~/.bedrock/secrets.env`: cTrader, FRED, EIA, FAS/USDA/api.data.gov (samme), NASS, AGSI.
 - Brukt: cTrader (priser) + FRED (makro) live; resten seedet fra `~/bedrock/bedrock.db`.
 - Ikke-wiret ennå: EIA, FAS/PSD, NASS, AGSI, LBMA, CBOE, Deribit, Baker Hughes m.fl. (kandidater for tilpasning).
-- ⚠️ FRED-nøkkelen ble eksponert i en feilmelding 2026-05-31 — vurder å rotere den.
 
 ## Åpne spørsmål
 - Skal scenario-generatoren bli hoved-produktet (ærlig fordeling) framfor «setups»? (UI viser i dag setups.json.)
