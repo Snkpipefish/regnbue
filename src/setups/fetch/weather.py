@@ -17,8 +17,10 @@ from setups import store
 ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
 
 # Representative punkter pr region. Brasil Center-South cane: Ribeirão Preto (SP).
+# Sul de Minas (Varginha): arabica-hjertet, frost-utsatt (austral vinter jun–aug → geada).
 REGIONS: dict[str, tuple[float, float]] = {
     "brazil_cs_cane": (-21.17, -47.81),
+    "brazil_sul_minas": (-21.55, -45.43),
 }
 
 

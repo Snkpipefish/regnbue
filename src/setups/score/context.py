@@ -74,6 +74,15 @@ class ScoreContext:
         ).fetchall()
         return [(r[0], r[1]) for r in rows]
 
+    # --- vær (minimumstemperatur, for frost-risiko) ---
+    def weather_tmin(self, region: str) -> list[tuple[str, float]]:
+        rows = self.conn.execute(
+            "SELECT date, tmin FROM weather WHERE region=? AND date<=? AND tmin IS NOT NULL "
+            "ORDER BY date",
+            (region, self.as_of),
+        ).fetchall()
+        return [(r[0], r[1]) for r in rows]
+
     # --- COT-posisjonering ---
     def cot(self, market: str) -> list[sqlite3.Row]:
         return self.conn.execute(

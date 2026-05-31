@@ -320,6 +320,60 @@ def rainfall_anomaly(ctx: ScoreContext, params: dict) -> DriverResult:
                         f"{region} {win}d-nedbør {kind} z={z:+.2f}", params)
 
 
+@register("frost_anomaly")
+def frost_anomaly(ctx: ScoreContext, params: dict) -> DriverResult:
+    """Frost-risiko: anomalt kald natt i et kaffe-/avlingsbelte = tilbudssjokk = bullish.
+
+    For arabica (Brasil, Sul de Minas) er geada (frost) i austral vinter den klassiske
+    pris-spiker (1975/1994/2021). Vi tar den KALDESTE natta (min tmin) i et nylig vindu,
+    z-skårer mot SAMME kalenderperiode i tidligere år, og lar bare ekte kuldeanomalier slå
+    ut (asymmetrisk: bare kaldt = bullish; varmt/normalt = 0). En absolutt kulde-gate hindrer
+    at sommer-kjøligheter feilaktig fyrer (frost krever faktisk lave temperaturer). Egen impl.
+    """
+    region = params.get("region", "brazil_sul_minas")
+    win = params.get("window_days", 10)
+    seasonal_halfwidth = params.get("seasonal_halfwidth", 15)
+    abs_gate = params.get("abs_cold_gate_c", 10.0)
+    series = ctx.weather_tmin(region)
+    if len(series) < 365 * 3:
+        return _miss("frost_anomaly", region, params)
+
+    dates = [date.fromisoformat(d) for d, _ in series]
+    vals = [v for _, v in series]
+    # Rullerende minimum (kaldeste natt) over vinduet.
+    from collections import deque
+    roll_min: list[float] = []
+    q: deque[float] = deque()
+    for v in vals:
+        q.append(v)
+        if len(q) > win:
+            q.popleft()
+        roll_min.append(min(q))
+
+    cur_doy = dates[-1].timetuple().tm_yday
+    cur_min = roll_min[-1]
+
+    def _doy_dist(a: int, b: int) -> int:
+        d = abs(a - b)
+        return min(d, 366 - d)
+
+    baseline = [roll_min[i] for i in range(len(roll_min) - 60)
+                if _doy_dist(dates[i].timetuple().tm_yday, cur_doy) <= seasonal_halfwidth]
+    if len(baseline) < 20:
+        return _miss("frost_anomaly", "for tynt sesong-grunnlag", params)
+
+    mean = statistics.fmean(baseline)
+    sd = statistics.pstdev(baseline) or 1e-9
+    z = (cur_min - mean) / sd
+    # Bare reelt kaldt (under abs-gate) OG anomalt kaldt (z<−1) gir bullish utslag.
+    if cur_min > abs_gate:
+        score = 0.0
+    else:
+        score = math.tanh(max(0.0, -z - 1.0))
+    return DriverResult("frost_anomaly", True, round(score, 4), round(cur_min, 1),
+                        f"{region} kaldeste natt {cur_min:.1f}°C (z={z:+.2f})", params)
+
+
 @register("series_ratio")
 def series_ratio(ctx: ScoreContext, params: dict) -> DriverResult:
     """Z-skåret forhold mellom to dype serier (teller/nevner), forward-fylt på felles datoer.

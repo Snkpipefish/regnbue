@@ -2,7 +2,7 @@
 
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
-**Sist oppdatert:** 2026-05-31 (gold + eurusd fundamentalt tilpasset)
+**Sist oppdatert:** 2026-05-31 (gold + eurusd + coffee fundamentalt tilpasset)
 **Nåværende fase:** MVP live + scenario-generator bygget. **Neste: instrument-tilpasning for resten (egne drivere pr instrument).**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
@@ -49,13 +49,17 @@ ingen setup uten statistisk støtte.
   `series_spread_percentile` (DGS10−IRLTLT01DEM156N, lav=bull, 0.35), US 2y `momentum` (Fed-forventninger,
   lav=bull, 0.25), COT EUR (0.20), `level_percentile` VIXCLS (risk-off=USD-bud=bear, lav=bull, 0.20). Fjernet
   generisk `price_vs_sma` OG sirkulær DTWEXBGS-momentum (≈invers av EURUSD selv). Verifisert: 2022/2025 SHORT, 2017 LONG.
-- ⚠️ **coffee** — håndskrevet men fortsatt semi-generisk (bruker price_vs_sma o.l.). Bør tilpasses ordentlig.
+- ✅ **coffee** (2026-05-31) — fundamentalt tilpasset. Drivere: `frost_anomaly` (ny: Sul de Minas kaldeste
+  natt vs sesong-baseline + absolutt kulde-gate så sommer-kjøling ikke fyrer, 0.30), `rainfall_anomaly`
+  (samme region, 0.20), BRL `momentum` (DEXBZUS, lav=bull, 0.25), COT (0.25). Fjernet `price_vs_sma` +
+  tvetydig ENSO. Dyp vær hentet via Open-Meteo (`brazil_sul_minas`, 2000→, lagt i `fetch.weather` REGIONS).
+  NB: Skilling-pris kun ~5 år → base-rate-gaten avviser ærlig (korrekt). Verifisert juli-2021-frost fyrer.
 - ⚠️ **18 øvrige** (silver, platinum, copper, wti, brent, natgas, corn, soybean, wheat, cocoa, cotton,
   gbpusd, usdjpy, audusd, sp500, nasdaq, btcusd, ethusd) — generisk, generert av `gen_universe_fingerprints.py`.
 
 ### Gjenbrukbare drivere (registrert i `score/drivers.py`)
 `level_percentile`, `momentum`, `price_momentum`, `series_spread_percentile`, `price_vs_sma`,
-`cot_spec_net_percentile`, `ethanol_parity`, `series_ratio`, `rainfall_anomaly`, `etf_flow`. Lag nye ved behov med `@register`.
+`cot_spec_net_percentile`, `ethanol_parity`, `series_ratio`, `rainfall_anomaly`, `etf_flow`, `frost_anomaly`. Lag nye ved behov med `@register`.
 
 ---
 

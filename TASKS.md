@@ -72,7 +72,9 @@ Se playbook i `STATE.md`. Pr instrument: research → skaff dyp data → hånd-s
       Fjernet generisk `price_vs_sma`. Verifisert: 2020/2022/2018-vendepunkter koherente. 40 tester grønne.
 - [x] **eurusd** — US−DE 10y rentespread, US 2y-momentum (Fed-forventninger), COT EUR, VIX risk-sentiment.
       Fjernet `price_vs_sma` + sirkulær DTWEXBGS. Verifisert: 2022/2025 SHORT, 2017 LONG — koherent.
-- [ ] coffee — tilpass ordentlig (i dag semi-generisk)
+- [x] **coffee** — frost (`frost_anomaly`, ny driver, Sul de Minas kaldeste natt m/abs-gate),
+      nedbør-anomali (dyp Open-Meteo 2000→), BRL (DEXBZUS), COT. Fjernet `price_vs_sma` + tvetydig ENSO.
+      Verifisert: juli-2021-frosten fyrer (3.2°C, z=-2.76); sommer-kjøling gated til 0. Skilling-pris kun ~5 år.
 - [ ] silver, platinum, copper
 - [ ] wti, brent, natgas
 - [ ] corn, soybean, wheat, cocoa, cotton

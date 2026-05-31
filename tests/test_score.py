@@ -11,6 +11,7 @@ from setups.score.context import ScoreContext
 from setups.score.drivers import (
     cot_spec_net_percentile,
     etf_flow,
+    frost_anomaly,
     price_vs_sma,
     series_spread_percentile,
 )
@@ -97,6 +98,46 @@ def test_etf_flow_excludes_future(conn):
     ctx = ScoreContext(conn, as_of=dates[100])  # ser ikke sluttspretten
     res = etf_flow(ctx, {"ticker": "gld", "horizon_days": 63, "bull_when": "high"})
     assert res.ok and abs(res.score) < 0.05
+
+
+def _seed_seasonal_tmin(conn, region, years=5, start="2018-01-01"):
+    """Daglig tmin med austral sesong-syklus (kaldest ~juli). Returnerer dato-liste."""
+    import math as _m
+    d0 = date.fromisoformat(start)
+    dates = []
+    for i in range(365 * years):
+        d = d0 + timedelta(days=i)
+        doy = d.timetuple().tm_yday
+        tmin = 12.5 - 5.5 * _m.cos(2 * _m.pi * (doy - 196) / 365)  # ~7°C vinter, ~18°C sommer
+        conn.execute(
+            "INSERT OR REPLACE INTO weather(region,date,tmin) VALUES (?,?,?)",
+            (region, d.isoformat(), round(tmin, 2)),
+        )
+        dates.append(d.isoformat())
+    return dates
+
+
+def test_frost_anomaly_cold_winter_is_bullish(conn):
+    dates = _seed_seasonal_tmin(conn, "brazil_sul_minas")
+    # Sett en anomalt kald natt (3°C) i midten av juli siste år — under abs-gate + sterkt negativ z.
+    cold_day = "2022-07-15"
+    conn.execute("INSERT OR REPLACE INTO weather(region,date,tmin) VALUES (?,?,?)",
+                 ("brazil_sul_minas", cold_day, 3.0))
+    ctx = ScoreContext(conn, as_of=cold_day)
+    res = frost_anomaly(ctx, {"region": "brazil_sul_minas", "window_days": 10})
+    assert res.ok and res.score > 0.3  # reell frost → bullish
+    assert cold_day in dates  # innenfor den seedede perioden
+
+
+def test_frost_anomaly_summer_coolspell_gated_to_zero(conn):
+    _seed_seasonal_tmin(conn, "brazil_sul_minas")
+    # Sommer-kjøling (14°C i januar): anomalt lavt for sesongen MEN over abs-gate (ingen frost).
+    cool_day = "2022-01-15"
+    conn.execute("INSERT OR REPLACE INTO weather(region,date,tmin) VALUES (?,?,?)",
+                 ("brazil_sul_minas", cool_day, 14.0))
+    ctx = ScoreContext(conn, as_of=cool_day)
+    res = frost_anomaly(ctx, {"region": "brazil_sul_minas", "window_days": 10})
+    assert res.ok and res.score == 0.0  # abs-gate hindrer falsk sommer-utslag
 
 
 def test_spread_percentile_low_is_bullish(conn):

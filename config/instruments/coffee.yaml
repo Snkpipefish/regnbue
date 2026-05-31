@@ -1,22 +1,34 @@
+# Kaffe (ICE Arabica, Coffee C) — håndtilpasset, fundamentalt (ingen generisk pris-trend).
+# Årsakskjede (research 2026-05): arabica drives av brasiliansk tilbuds-sjokk i Sul de Minas
+# (arabica-hjertet) + BRL + posisjonering.
+#   1) Frost (geada) i austral vinter: klassisk pris-spiker (1975/1994/2021). Kaldeste natt.
+#   2) Tørke/styrtregn rundt blomstring (sep–nov): tilbudssjokk = bullish.
+#   3) BRL (USD/BRL): svak real → bønder selger mer (kostnad i BRL, pris i USD) → bearish.
+#   4) Spekulant-posisjonering (ICE Coffee C): trend-bekreftende.
+# NB: ENSO (NOAA_ONI) bevisst UTELATT — fortegnet er tvetydig for kaffe (2021-frost/tørke falt
+#     under La Niña), og de direkte vær-driverne fanger realiseringen bedre enn ENSO-proxyen.
+# Vær er dyp via Open-Meteo (brazil_sul_minas, 2000→); Skilling-pris er kun ~5 år → base-rate-
+# gaten avviser ærlig ved for få analoger (det er korrekt, ikke en bug).
 id: Coffee
 ticker: Coffee          # Skilling-ticker (NB: stor C, ikke COFFEE)
 asset_class: softs
 drivers:
-  # Spekulant-posisjonering (ICE Coffee C), trend-bekreftende.
-  - name: cot_spec_net_percentile
+  # Frost-risiko i Sul de Minas (kaldeste natt vs sesong-baseline; bare reell kulde = bullish).
+  - name: frost_anomaly
     weight: 0.30
-    params: {market: Coffee, lookback_weeks: 156, bull_when: high}
-  - name: price_vs_sma
-    weight: 0.30
-    params: {symbol: Coffee, window: 200, tf: D1}
-  # USD/BRL opp (svak real) → brasilianske bønder selger mer → bearish kaffe (bull_when: low).
+    params: {region: brazil_sul_minas, window_days: 10}
+  # Nedbør-anomali (BEGGE ekstremer rundt blomstring = tilbudssjokk = bullish). Dyp (2000→).
+  - name: rainfall_anomaly
+    weight: 0.20
+    params: {region: brazil_sul_minas, window_days: 30}
+  # BRL (USD/BRL): svak real (høy) → mer salg → bearish (bull_when low). 21d-momentum. Dyp (1995→).
   - name: momentum
     weight: 0.25
     params: {series: DEXBZUS, horizon_days: 21, bull_when: low}
-  # ENSO (NOAA ONI): varm fase (El Niño) → tørke-risiko i Brasil → bullish kaffe.
-  - name: level_percentile
-    weight: 0.15
-    params: {series: NOAA_ONI, lookback_days: 1825, bull_when: high}
+  # Spekulant netto-posisjonering (ICE Coffee C), trend-bekreftende. Dyp (2010→).
+  - name: cot_spec_net_percentile
+    weight: 0.25
+    params: {market: Coffee, lookback_weeks: 156, bull_when: high}
 grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
 base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
             min_hit_rate_pct: 55, min_expectancy_r: 0.3}
