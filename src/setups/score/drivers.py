@@ -238,3 +238,56 @@ def ethanol_parity(ctx: ScoreContext, params: dict) -> DriverResult:
     score = math.tanh(z)              # høyt forhold = etanol dyrt vs sukker = bullish
     return DriverResult("ethanol_parity", True, round(score, 4), round(cur, 5),
                         f"etanol/sukker z={z:+.2f}", params)
+
+
+@register("rainfall_anomaly")
+def rainfall_anomaly(ctx: ScoreContext, params: dict) -> DriverResult:
+    """Sesongjustert nedbør-anomali; BEGGE ekstremer = bullish (ikke-monoton).
+
+    For en avling som sukker/kaffe forstyrrer både tørke (cane-stress) og styrtregn
+    (høst-forstyrrelse, lavt sukkerinnhold) tilbudet → bullish. Normalt vær = bearish.
+    Vi summerer nedbør over et vindu og z-skårer mot SAMME kalenderperiode i tidligere år
+    (så sesongen ikke forveksles med anomali), og mapper |z| slik at ekstremt = positivt.
+    """
+    region = params.get("region", "brazil_cs_cane")
+    win = params.get("window_days", 30)
+    seasonal_halfwidth = params.get("seasonal_halfwidth", 15)
+    series = ctx.weather_precip(region)
+    if len(series) < 365 * 3:
+        return _miss("rainfall_anomaly", region, params)
+
+    dates = [date.fromisoformat(d) for d, _ in series]
+    vals = [v for _, v in series]
+    # Rullerende vindu-sum (krever ~sammenhengende daglige data fra Open-Meteo).
+    from collections import deque
+    roll: list[float] = []
+    acc = 0.0
+    q: deque[float] = deque()
+    for v in vals:
+        q.append(v)
+        acc += v
+        if len(q) > win:
+            acc -= q.popleft()
+        roll.append(acc)
+
+    cur_doy = dates[-1].timetuple().tm_yday
+    cur_sum = roll[-1]
+
+    def _doy_dist(a: int, b: int) -> int:
+        d = abs(a - b)
+        return min(d, 366 - d)
+
+    # Sesong-baseline: vindu-summer på samme tid på året i tidligere år (ikke siste 60 dager).
+    baseline = [roll[i] for i in range(len(roll) - 60)
+                if _doy_dist(dates[i].timetuple().tm_yday, cur_doy) <= seasonal_halfwidth]
+    if len(baseline) < 20:
+        return _miss("rainfall_anomaly", "for tynt sesong-grunnlag", params)
+
+    mean = statistics.fmean(baseline)
+    sd = statistics.pstdev(baseline) or 1e-9
+    z = (cur_sum - mean) / sd
+    # |z|<1 (normalt) → negativt (bearish); |z|>1 (tørke ELLER styrtregn) → positivt (bullish).
+    score = math.tanh(abs(z) - 1.0)
+    kind = "tørt" if z < 0 else "vått"
+    return DriverResult("rainfall_anomaly", True, round(score, 4), round(z, 3),
+                        f"{region} {win}d-nedbør {kind} z={z:+.2f}", params)

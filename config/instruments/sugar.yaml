@@ -7,20 +7,24 @@ asset_class: softs
 drivers:
   # Etanol-paritet: dyr etanol (USD) vs sukker → møllene lager etanol → mindre sukker → bullish.
   - name: ethanol_parity
-    weight: 0.25
+    weight: 0.22
     params: {symbol: Sugar, ethanol_series: ANP_ETANOL_HIDR_CS_BRL_LITER, brl_series: DEXBZUS}
   # Brasil C-S sukker-mix % (UNICA): høy mix = mer sukker-tilbud = bearish.
   - name: level_percentile
-    weight: 0.20
+    weight: 0.18
     params: {series: UNICA_MIX_SUGAR_PCT, lookback_days: 1095, bull_when: low}
   # Brasiliansk real (DEXBZUS = BRL pr USD): svak BRL (høy) → mer salg → bearish.
   - name: level_percentile
-    weight: 0.20
+    weight: 0.15
     params: {series: DEXBZUS, lookback_days: 504, bull_when: low}
   # ENSO (NOAA ONI): El Niño (varm, høy) → tilbudssjokk India/Brasil → bullish.
   - name: level_percentile
-    weight: 0.20
+    weight: 0.15
     params: {series: NOAA_ONI, lookback_days: 1825, bull_when: high}
+  # Vær Brasil C-S: nedbør-anomali, BEGGE ekstremer (tørke/styrtregn) = tilbudssjokk = bullish.
+  - name: rainfall_anomaly
+    weight: 0.15
+    params: {region: brazil_cs_cane, window_days: 30}
   # Spekulant-posisjonering (ICE Sugar No.11).
   - name: cot_spec_net_percentile
     weight: 0.15

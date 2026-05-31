@@ -55,6 +55,15 @@ class ScoreContext:
         ).fetchall()
         return [(r[0], r[1]) for r in rows]
 
+    # --- vær (nedbør) ---
+    def weather_precip(self, region: str) -> list[tuple[str, float]]:
+        rows = self.conn.execute(
+            "SELECT date, precip FROM weather WHERE region=? AND date<=? AND precip IS NOT NULL "
+            "ORDER BY date",
+            (region, self.as_of),
+        ).fetchall()
+        return [(r[0], r[1]) for r in rows]
+
     # --- COT-posisjonering ---
     def cot(self, market: str) -> list[sqlite3.Row]:
         return self.conn.execute(
