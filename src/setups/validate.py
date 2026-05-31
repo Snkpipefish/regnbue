@@ -80,8 +80,19 @@ def _all_fingerprints() -> list[str]:
     return sorted(p.stem for p in FINGERPRINT_DIR.glob("*.yaml"))
 
 
-def run(db_path=store.DEFAULT_DB_PATH, fingerprints=None,
-        oos_start="2024-01-01") -> list[Validation]:
+def _print(v: Validation) -> None:
+    print(f"\n=== {v.instrument}  (train {v.n_train}, oos {v.n_oos})", flush=True)
+    print(f"  baseline OOS:    hit {v.base_hit*100:.0f}%  exp {v.base_exp:+.2f}R", flush=True)
+    print(f"  prediktiv (n={v.n_predicted}): "
+          f"fortegns-treff {v.sign_agreement*100:.0f}%  "
+          f"exp|pred+ {v.exp_when_pred_bull:+.2f}R  exp|pred- {v.exp_when_pred_bear:+.2f}R",
+          flush=True)
+    print(f"  gate publiserte: n={v.n_gate_pass}  "
+          f"hit {v.gate_hit*100:.0f}%  exp {v.gate_exp:+.2f}R", flush=True)
+
+
+def run(db_path=store.DEFAULT_DB_PATH, fingerprints=None, oos_start="2024-01-01",
+        verbose: bool = False) -> list[Validation]:
     fingerprints = fingerprints or _all_fingerprints()
     out: list[Validation] = []
     with store.connect(db_path) as conn:
@@ -90,11 +101,14 @@ def run(db_path=store.DEFAULT_DB_PATH, fingerprints=None,
             br = fp.get("base_rate", {})
             panel = build_panel(conn, fp, horizon=br.get("horizon_days", 30),
                                 oos_start=oos_start)
-            out.append(validate(
+            v = validate(
                 panel, band=br.get("band", 0.1),
                 min_effective_n=br.get("min_effective_n", 30),
                 min_hit_rate_pct=br.get("min_hit_rate_pct", 55.0),
-                min_expectancy_r=br.get("min_expectancy_r", 0.3)))
+                min_expectancy_r=br.get("min_expectancy_r", 0.3))
+            out.append(v)
+            if verbose:
+                _print(v)  # skriv fortløpende så delresultat overlever en avbrytelse
     return out
 
 
@@ -103,14 +117,7 @@ def main() -> None:
     ap.add_argument("--db", default=str(store.DEFAULT_DB_PATH))
     ap.add_argument("--oos-start", default="2024-01-01")
     args = ap.parse_args()
-    for v in run(db_path=args.db, oos_start=args.oos_start):
-        print(f"\n=== {v.instrument}  (train {v.n_train}, oos {v.n_oos})")
-        print(f"  baseline OOS:    hit {v.base_hit*100:.0f}%  exp {v.base_exp:+.2f}R")
-        print(f"  prediktiv (n={v.n_predicted}): "
-              f"fortegns-treff {v.sign_agreement*100:.0f}%  "
-              f"exp|pred+ {v.exp_when_pred_bull:+.2f}R  exp|pred- {v.exp_when_pred_bear:+.2f}R")
-        print(f"  gate publiserte: n={v.n_gate_pass}  "
-              f"hit {v.gate_hit*100:.0f}%  exp {v.gate_exp:+.2f}R")
+    run(db_path=args.db, oos_start=args.oos_start, verbose=True)
 
 
 if __name__ == "__main__":
