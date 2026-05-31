@@ -121,10 +121,12 @@ def build_panel(conn: sqlite3.Connection, fingerprint: dict, *,
         d = bars.dates[i]
         ctx = ScoreContext(conn, as_of=d)
         res = score_instrument(ctx, fingerprint)
-        # Krev at alle drivere har data → konsistent vektor for likhetsmål.
-        if any(not dr.ok for dr in res.drivers):
+        # Base-rate matcher på aggregert score (renormalisert over tilgjengelige drivere),
+        # så vi krever bare at MINST én driver har data — ikke alle. (En grunn driver som
+        # mangler historisk skal ikke utslette hele panelet.)
+        if not any(dr.ok for dr in res.drivers):
             continue
-        vector = {dr.name: dr.score for dr in res.drivers}
+        vector = {dr.name: dr.score for dr in res.drivers if dr.ok}
         direction = "LONG" if res.score >= 0 else "SHORT"
         label, outcome_r = triple_barrier(bars, i, direction, sl_atr * a, tp_atr * a,
                                            horizon, rr)

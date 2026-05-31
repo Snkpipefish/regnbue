@@ -1,34 +1,35 @@
-# Sukker (ICE No. 11) — håndtilpasset, rent fundamentalt (ingen generisk pris-trend).
-# Research: Brasil ~44% av omsatt sukker; cane-allokering sukker↔etanol er hoveddriveren.
+# Sukker (ICE No. 11) — håndtilpasset, fundamentalt. Styrket til DYPE drivere (Vei A):
+# etanol-incentiv proxies via energi/sukker-ratio (1992→) i stedet for grunn ANP-paritet.
 # El Niño = bullish (tørke India/Thailand + høst-forstyrrelse Brasil C-S).
 id: Sugar
 ticker: Sugar
 asset_class: softs
 drivers:
-  # Etanol-paritet: dyr etanol (USD) vs sukker → møllene lager etanol → mindre sukker → bullish.
-  - name: ethanol_parity
-    weight: 0.22
-    params: {symbol: Sugar, ethanol_series: ANP_ETANOL_HIDR_CS_BRL_LITER, brl_series: DEXBZUS}
-  # Brasil C-S sukker-mix % (UNICA): høy mix = mer sukker-tilbud = bearish.
+  # Etanol-divergerings-incentiv (DYP proxy): WTI ÷ IMF-sukkerpris. Høyt = energi dyrt vs
+  # sukker → cane til etanol → mindre sukker → bullish. Serier fra 1990/1992.
+  - name: series_ratio
+    weight: 0.25
+    params: {numerator: DCOILWTICO, denominator: PSUGAISAUSDM, lookback_days: 1825, bull_when: high}
+  # Vær Brasil C-S: nedbør-anomali, BEGGE ekstremer (tørke/styrtregn) = tilbudssjokk = bullish.
+  - name: rainfall_anomaly
+    weight: 0.20
+    params: {region: brazil_cs_cane, window_days: 30}
+  # ENSO (NOAA ONI): El Niño (varm, høy) → tilbudssjokk India/Brasil → bullish. Dyp (1950→).
   - name: level_percentile
-    weight: 0.18
-    params: {series: UNICA_MIX_SUGAR_PCT, lookback_days: 1095, bull_when: low}
-  # Brasiliansk real (DEXBZUS = BRL pr USD): svak BRL (høy) → mer salg → bearish.
+    weight: 0.20
+    params: {series: NOAA_ONI, lookback_days: 1825, bull_when: high}
+  # Brasiliansk real (DEXBZUS = BRL pr USD): svak BRL (høy) → mer salg → bearish. Dyp.
   - name: level_percentile
     weight: 0.15
     params: {series: DEXBZUS, lookback_days: 504, bull_when: low}
-  # ENSO (NOAA ONI): El Niño (varm, høy) → tilbudssjokk India/Brasil → bullish.
-  - name: level_percentile
-    weight: 0.15
-    params: {series: NOAA_ONI, lookback_days: 1825, bull_when: high}
-  # Vær Brasil C-S: nedbør-anomali, BEGGE ekstremer (tørke/styrtregn) = tilbudssjokk = bullish.
-  - name: rainfall_anomaly
-    weight: 0.15
-    params: {region: brazil_cs_cane, window_days: 30}
-  # Spekulant-posisjonering (ICE Sugar No.11).
+  # Spekulant-posisjonering (ICE Sugar No.11). Dyp.
   - name: cot_spec_net_percentile
-    weight: 0.15
+    weight: 0.10
     params: {market: Sugar, lookback_weeks: 156, bull_when: high}
+  # UNICA sukker-mix % — nylig-overlay (grunt, 43 pkt); høy mix = mer tilbud = bearish.
+  - name: level_percentile
+    weight: 0.10
+    params: {series: UNICA_MIX_SUGAR_PCT, lookback_days: 1095, bull_when: low}
 grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
 base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
             min_hit_rate_pct: 55, min_expectancy_r: 0.3}

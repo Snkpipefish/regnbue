@@ -291,3 +291,35 @@ def rainfall_anomaly(ctx: ScoreContext, params: dict) -> DriverResult:
     kind = "tørt" if z < 0 else "vått"
     return DriverResult("rainfall_anomaly", True, round(score, 4), round(z, 3),
                         f"{region} {win}d-nedbør {kind} z={z:+.2f}", params)
+
+
+@register("series_ratio")
+def series_ratio(ctx: ScoreContext, params: dict) -> DriverResult:
+    """Z-skåret forhold mellom to dype serier (teller/nevner), forward-fylt på felles datoer.
+
+    Brukes f.eks. som dyp proxy for sukker sin etanol-divergering: energi/sukker
+    (WTI ÷ IMF-sukkerpris) — høyt = energi dyrt vs sukker → cane til etanol → bullish sukker.
+    """
+    from bisect import bisect_right
+
+    a = ctx.series(params["numerator"])
+    b = ctx.series(params["denominator"])
+    if len(a) < 20 or len(b) < 20:
+        return _miss("series_ratio", f"{params['numerator']}/{params['denominator']}", params)
+    bdates, bvals = [d for d, _ in b], [v for _, v in b]
+    ratios: list[tuple[str, float]] = []
+    for d, av in a:
+        i = bisect_right(bdates, d) - 1
+        if i >= 0 and bvals[i]:
+            ratios.append((d, av / bvals[i]))
+    ratios = _within_lookback(ratios, ctx.as_of, params.get("lookback_days", 1825))
+    if len(ratios) < 20:
+        return _miss("series_ratio", "for kort overlapp", params)
+    vals = [v for _, v in ratios]
+    cur = vals[-1]
+    mean = statistics.fmean(vals)
+    sd = statistics.pstdev(vals) or 1e-9
+    z = (cur - mean) / sd
+    score = math.tanh(z) * _sign(params.get("bull_when", "high"))
+    return DriverResult("series_ratio", True, round(score, 4), round(cur, 4),
+                        f"{params['numerator']}/{params['denominator']} z={z:+.2f}", params)
