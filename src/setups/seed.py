@@ -108,6 +108,8 @@ SEED_MAP: dict[str, dict] = {
     # Indeks
     "SP500": {"cot": {"types": ["tff", "legacy"], "contracts": ["E-MINI S&P 500"]},
               "macro_series": ["BAMLH0A0HYM2", "VIXCLS"]},
+    "Nasdaq": {"cot": {"types": ["tff", "legacy"], "contracts": ["NASDAQ-100"]},
+               "macro_series": ["BAMLH0A0HYM2", "VIXCLS"]},
     # Krypto (CME COT; lite makro-relevans → pris + posisjonering)
     "BTCUSD": {"cot": {"types": ["tff", "legacy"], "contracts": ["BITCOIN"]},
                "macro_series": []},

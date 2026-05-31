@@ -102,6 +102,9 @@ SPEC = [
     ("SP500", "SPX500", "index",
      [macro_lvl("BAMLH0A0HYM2", 0.30, "low"), cot("SP500", 0.20, "high"), trend("SPX500", 0.30),
       mom("SPX500", 0.20)]),
+    ("Nasdaq", "US100", "index",
+     [macro_lvl("BAMLH0A0HYM2", 0.30, "low"), cot("Nasdaq", 0.20, "high"), trend("US100", 0.30),
+      mom("US100", 0.20)]),
     # Krypto — pris + posisjonering
     ("BTCUSD", "Bitcoin", "crypto",
      [cot("BTCUSD", 0.25, "high"), trend("Bitcoin", 0.40), mom("Bitcoin", 0.35)]),
