@@ -58,10 +58,10 @@ SEED_MAP: dict[str, dict] = {
         "etf_tickers": ["gld"],
     },
     "EURUSD": {
-        # "EURO FX" treffer CME-kontrakten (tff). DGS2 = front-end rente (FX-driver),
-        # IRLTLT01DEM156N = tysk lang rente (rentedifferanse mot US).
+        # "EURO FX" treffer CME-kontrakten (tff). DGS2 = front-end rente (Fed-forventninger),
+        # IRLTLT01DEM156N = tysk lang rente (US−DE rentespread), VIXCLS = risk-sentiment.
         "cot": {"types": ["tff", "legacy"], "contracts": ["EURO FX"]},
-        "macro_series": ["DEXUSEU", "DX-Y.NYB", "DGS2", "DGS10", "IRLTLT01DEM156N"],
+        "macro_series": ["DEXUSEU", "DX-Y.NYB", "DGS2", "DGS10", "IRLTLT01DEM156N", "VIXCLS"],
     },
     "Coffee": {
         # "COFFEE" treffer "COFFEE C - ICE FUTURES U.S." (disagg). DEXBZUS = USD/BRL,

@@ -70,7 +70,9 @@ Se playbook i `STATE.md`. Pr instrument: research → skaff dyp data → hånd-s
 - [x] **Sugar** — ferdig mal (series_ratio energi/sukker, rainfall_anomaly, ENSO, BRL, COT, UNICA)
 - [x] **gold** — realrente (DGS10−T10YIE), bred dollar (DTWEXBGS), **GLD ETF-flyt (ny `etf_flow`-driver)**, COT.
       Fjernet generisk `price_vs_sma`. Verifisert: 2020/2022/2018-vendepunkter koherente. 40 tester grønne.
-- [ ] eurusd, coffee — tilpass ordentlig (i dag semi-generisk)
+- [x] **eurusd** — US−DE 10y rentespread, US 2y-momentum (Fed-forventninger), COT EUR, VIX risk-sentiment.
+      Fjernet `price_vs_sma` + sirkulær DTWEXBGS. Verifisert: 2022/2025 SHORT, 2017 LONG — koherent.
+- [ ] coffee — tilpass ordentlig (i dag semi-generisk)
 - [ ] silver, platinum, copper
 - [ ] wti, brent, natgas
 - [ ] corn, soybean, wheat, cocoa, cotton

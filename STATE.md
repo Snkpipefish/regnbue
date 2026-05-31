@@ -2,7 +2,7 @@
 
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
-**Sist oppdatert:** 2026-05-31 (gold fundamentalt tilpasset)
+**Sist oppdatert:** 2026-05-31 (gold + eurusd fundamentalt tilpasset)
 **Nåværende fase:** MVP live + scenario-generator bygget. **Neste: instrument-tilpasning for resten (egne drivere pr instrument).**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
@@ -45,7 +45,11 @@ ingen setup uten statistisk støtte.
   realrente `series_spread_percentile` (DGS10−T10YIE, lav=bull, 0.35), bred dollar `momentum` (DTWEXBGS, 0.20),
   **`etf_flow`** (ny driver: GLD tonnes-in-trust flyt, inn=bull, 0.25), COT (0.20). GLD-data dyp (2004→).
   Verifisert: 2020-08 LONG / 2022-09 SHORT / 2018-06 SHORT — koherent med faktiske vendepunkter.
-- ⚠️ **eurusd, coffee** — håndskrevet men fortsatt semi-generisk (bruker price_vs_sma o.l.). Bør tilpasses ordentlig.
+- ✅ **eurusd** (2026-05-31) — fundamentalt tilpasset. Drivere: US−DE 10y rentespread
+  `series_spread_percentile` (DGS10−IRLTLT01DEM156N, lav=bull, 0.35), US 2y `momentum` (Fed-forventninger,
+  lav=bull, 0.25), COT EUR (0.20), `level_percentile` VIXCLS (risk-off=USD-bud=bear, lav=bull, 0.20). Fjernet
+  generisk `price_vs_sma` OG sirkulær DTWEXBGS-momentum (≈invers av EURUSD selv). Verifisert: 2022/2025 SHORT, 2017 LONG.
+- ⚠️ **coffee** — håndskrevet men fortsatt semi-generisk (bruker price_vs_sma o.l.). Bør tilpasses ordentlig.
 - ⚠️ **18 øvrige** (silver, platinum, copper, wti, brent, natgas, corn, soybean, wheat, cocoa, cotton,
   gbpusd, usdjpy, audusd, sp500, nasdaq, btcusd, ethusd) — generisk, generert av `gen_universe_fingerprints.py`.
 

@@ -1,22 +1,32 @@
+# EURUSD — håndtilpasset, fundamentalt (ingen generisk pris-trend).
+# Årsakskjede (research 2026-05): EURUSD styres av Fed↔ECB-politikk-divergens og US−tysk
+# rentespread; risk-sentiment (USD trygg-havn) sekundært.
+#   1) US−DE 10y rentespread: bredere (høyere US) = sterk USD = EURUSD bearish.
+#   2) Front-end Fed-forventninger (US 2y): stigende US 2y = hawkish Fed = USD opp = EURUSD ned.
+#   3) Spekulant-posisjonering (CME EURO FX): trend-bekreftende.
+#   4) Risk-sentiment (VIX): risk-off = USD trygg-havn-bud = EURUSD ned.
+# NB: bred-dollar-momentum (DTWEXBGS) er bevisst UTELATT — den er ~den inverse av EURUSD selv
+#     (sirkulær pris-trend), ikke en uavhengig fundamental driver.
 id: EURUSD
 ticker: EURUSD
 asset_class: fx
 drivers:
-  # US−DE 10-års rentediff. Høyere US-rente = sterkere USD = EURUSD bearish (bull_when: low).
+  # US−DE 10y nominell rentespread. Bredere (høy) = sterk USD = EURUSD bearish (bull_when low). Dyp.
   - name: series_spread_percentile
-    weight: 0.30
+    weight: 0.35
     params: {minuend: DGS10, subtrahend: IRLTLT01DEM156N, lookback_days: 504, bull_when: low}
-  # Bred dollar opp = EURUSD ned.
+  # US 2-års rente-momentum (Fed-forventnings-skift). Stigende = USD opp = EURUSD ned. Dyp (1976→).
   - name: momentum
     weight: 0.25
-    params: {series: DTWEXBGS, horizon_days: 21, bull_when: low}
-  # EUR-spekulant-posisjonering (CME EURO FX), trend-bekreftende.
+    params: {series: DGS2, horizon_days: 21, bull_when: low}
+  # EUR-spekulant netto-posisjonering (CME EURO FX), trend-bekreftende. (2016→).
   - name: cot_spec_net_percentile
     weight: 0.20
     params: {market: EURUSD, lookback_weeks: 156, bull_when: high}
-  - name: price_vs_sma
-    weight: 0.25
-    params: {symbol: EURUSD, window: 200, tf: D1}
+  # Risk-sentiment: høy VIX = risk-off = USD trygg-havn = EURUSD ned (bull_when low). Dyp (2010→).
+  - name: level_percentile
+    weight: 0.20
+    params: {series: VIXCLS, lookback_days: 504, bull_when: low}
 grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
 base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
             min_hit_rate_pct: 55, min_expectancy_r: 0.3}
