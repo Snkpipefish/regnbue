@@ -23,6 +23,10 @@ dev = [
 ctrader = [
     "ctrader-open-api",
 ]
+# Foundation-modell-utfordrer (valgfri, tung: torch). Kjernen lazy-importerer denne.
+fm = [
+    "chronos-forecasting",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
