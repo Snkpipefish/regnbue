@@ -2,11 +2,14 @@
 Description=Regnbue — kjør setups-pipeline hver 6. time
 
 [Timer]
-# Hver 6. time (00, 06, 12, 18) + 10 min etter boot. Persistent fanger opp tapte kjøringer.
-OnCalendar=*-*-* 00/6:00:00
-OnBootSec=10min
+# Hver 6. time, men forskjøvet til :10 over odde timer for å unngå FRED-nøkkel-kollisjon
+# (delt nøkkel): cot-explorer kjører 00/04/08/12/16/20, bedrock-fundamentals 02:30.
+# 01:10/07:10/13:10/19:10 er klar av begge. Boot-forsinkelse 25 min unngår boot-rushet
+# (cot-explorer Persistent-catchup + bedrock OnBootSec-tjenester). Persistent fanger tapte.
+OnCalendar=*-*-* 01,07,13,19:10:00
+OnBootSec=25min
 Persistent=true
-RandomizedDelaySec=2min
+RandomizedDelaySec=3min
 
 [Install]
 WantedBy=timers.target
