@@ -9,12 +9,50 @@ Bruk:  python -m setups.fetch.weather            # standard-regioner
 from __future__ import annotations
 
 import argparse
+import time
 
 import requests
 
 from setups import store
 
 ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
+
+# God nabo: Open-Meteos gratis arkiv-API rate-limiter pr IP (ikke pr nøkkel som FRED).
+# Vi sprer kallene mellom regioner og backer av på 429/5xx i stedet for å dø på første
+# 429 (jf. update.sh: vær-steget er best-effort). Beskjedne tall holder — vi henter
+# bare ~7 regioner.
+REQUEST_SPACING_S = 1.0        # pause mellom regioner
+MAX_RETRIES = 4               # forsøk pr region ved 429/5xx
+BACKOFF_BASE_S = 5.0          # eksponentiell: 5, 10, 20, 40 s (om Retry-After mangler)
+
+
+def _get_with_backoff(params: dict, timeout: int) -> requests.Response:
+    """GET med eksponentiell backoff på 429/5xx. Respekterer `Retry-After` når satt.
+
+    Open-Meteo rate-limiter pr IP; ved 429 venter vi og prøver igjen i stedet for å
+    feile hele kjøringen.
+    """
+    last_exc: Exception | None = None
+    for attempt in range(MAX_RETRIES):
+        resp = requests.get(ARCHIVE_URL, params=params, timeout=timeout)
+        if resp.status_code not in (429, 500, 502, 503, 504):
+            resp.raise_for_status()
+            return resp
+        # Retryable: regn ut ventetid (Retry-After vinner om den finnes).
+        retry_after = resp.headers.get("Retry-After")
+        if retry_after and retry_after.isdigit():
+            wait_s = float(retry_after)
+        else:
+            wait_s = BACKOFF_BASE_S * (2 ** attempt)
+        last_exc = requests.HTTPError(
+            f"{resp.status_code} fra Open-Meteo, "
+            f"forsøk {attempt + 1}/{MAX_RETRIES}, venter {wait_s:.0f}s")
+        if attempt < MAX_RETRIES - 1:
+            time.sleep(wait_s)
+    # Brukte opp forsøkene — la kallet feile slik at update.sh logger og fortsetter.
+    if last_exc:
+        raise last_exc
+    raise requests.HTTPError("Open-Meteo-kall feilet uten respons")
 
 # Representative punkter pr region. Brasil Center-South cane: Ribeirão Preto (SP).
 # Sul de Minas (Varginha): arabica-hjertet, frost-utsatt (austral vinter jun–aug → geada).
@@ -43,8 +81,7 @@ def fetch_region(region: str, lat: float, lon: float, start: str = "2000-01-01",
         "daily": "precipitation_sum,temperature_2m_max,temperature_2m_min",
         "timezone": "UTC",
     }
-    resp = requests.get(ARCHIVE_URL, params=params, timeout=timeout)
-    resp.raise_for_status()
+    resp = _get_with_backoff(params, timeout)
     d = resp.json().get("daily", {})
     dates = d.get("time", [])
     precip = d.get("precipitation_sum", [])
@@ -65,7 +102,9 @@ def update_weather(regions: dict[str, tuple[float, float]] | None = None,
     counts: dict[str, int] = {}
     with store.connect(db_path) as conn:
         store.init_db(conn)
-        for region, (lat, lon) in regions.items():
+        for i, (region, (lat, lon)) in enumerate(regions.items()):
+            if i:  # spre kallene — ikke før første region
+                time.sleep(REQUEST_SPACING_S)
             rows = fetch_region(region, lat, lon, start=start)
             conn.executemany(
                 "INSERT OR REPLACE INTO weather(region,date,tmax,tmin,precip) "
