@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated": "2026-06-11T19:58:33Z",
-  "as_of": "2026-06-09",
+  "generated": "2026-06-12T05:07:14Z",
+  "as_of": "2026-06-10",
   "signals": [
     {
       "instrument": "NatGas",
@@ -59,12 +59,12 @@
       "grade": "A",
       "score": -0.5297,
       "published": false,
-      "entry": 255.21,
-      "sl": 261.674286,
+      "entry": 261.82,
+      "sl": 271.65875,
       "tp": 250,
-      "rr": 0.806,
-      "atr": 6.697143,
-      "reject_reason": "R:R 0.81 < 1.5; base-rate: for få analoger (n=7 < 30); hit-rate nedre CI 3% < 55%; expectancy -0.57R < 0.30R; expectancy CI inkluderer ≤0 (-1.41R)",
+      "rr": 1.201,
+      "atr": 6.635,
+      "reject_reason": "R:R 1.20 < 1.5; base-rate: for få analoger (n=7 < 30); hit-rate nedre CI 3% < 55%; expectancy -0.57R < 0.30R; expectancy CI inkluderer ≤0 (-1.41R)",
       "base_rate": {
         "n": 7,
         "hit_rate": 0.1429,
@@ -114,12 +114,12 @@
       "grade": "A",
       "score": -0.5225,
       "published": false,
-      "entry": 4071.63,
-      "sl": 4127.323036,
-      "tp": 4000,
-      "rr": 1.286,
-      "atr": 109.292143,
-      "reject_reason": "R:R 1.29 < 1.5; base-rate: hit-rate nedre CI 20% < 55%; expectancy +0.08R < 0.30R; expectancy CI inkluderer ≤0 (-0.41R)",
+      "entry": 4212.35,
+      "sl": 4274.843571,
+      "tp": 4169.97,
+      "rr": 0.678,
+      "atr": 119.334286,
+      "reject_reason": "R:R 0.68 < 1.5; base-rate: hit-rate nedre CI 20% < 55%; expectancy +0.08R < 0.30R; expectancy CI inkluderer ≤0 (-0.41R)",
       "base_rate": {
         "n": 33,
         "hit_rate": 0.3333,
@@ -139,7 +139,7 @@
         {
           "name": "series_spread_percentile",
           "ok": true,
-          "score": -0.9712,
+          "score": -0.9711,
           "detail": "DGS10-T10YIE = +2.2 (p99)"
         },
         {
@@ -974,14 +974,14 @@
       "ticker": "EURUSD",
       "direction": "SHORT",
       "grade": "NONE",
-      "score": -0.0502,
+      "score": -0.0504,
       "published": false,
-      "entry": 1.1534,
-      "sl": 1.163989,
-      "tp": 1.15064,
-      "rr": 0.261,
-      "atr": 0.005356,
-      "reject_reason": "ingen grade (for svakt signal); R:R 0.26 < 1.5; base-rate: hit-rate nedre CI 27% < 55%; expectancy +0.14R < 0.30R; expectancy CI inkluderer ≤0 (-0.24R)",
+      "entry": 1.15773,
+      "sl": 1.164086,
+      "tp": 1.15414,
+      "rr": 0.565,
+      "atr": 0.005745,
+      "reject_reason": "ingen grade (for svakt signal); R:R 0.56 < 1.5; base-rate: hit-rate nedre CI 27% < 55%; expectancy +0.14R < 0.30R; expectancy CI inkluderer ≤0 (-0.24R)",
       "base_rate": {
         "n": 58,
         "hit_rate": 0.3793,
@@ -1001,7 +1001,7 @@
         {
           "name": "series_spread_percentile",
           "ok": true,
-          "score": -0.0951,
+          "score": -0.0983,
           "detail": "DGS10-IRLTLT01DEM156N = +1.53 (p55)"
         },
         {
@@ -1019,7 +1019,7 @@
         {
           "name": "level_percentile",
           "ok": true,
-          "score": 0.6437,
+          "score": 0.6484,
           "detail": "VIXCLS nivå 15.7 = p18"
         }
       ]
