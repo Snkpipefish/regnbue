@@ -119,13 +119,15 @@ class BarrierProb:
 def fhs_barrier_prob(returns: np.ndarray, as_of_idx: int, *, direction: str,
                      tp_ret: float, sl_ret: float, horizon: int = 20, n_paths: int = 2000,
                      mean_block: int = 5, lam: float = 0.94,
-                     resid_pool: np.ndarray | None = None, seed: int = 0) -> BarrierProb:
+                     resid_pool: np.ndarray | None = None, seed: int = 0,
+                     swap: dict | None = None) -> BarrierProb:
     """Forward P(TP før SL) + expectancy fra FHS-baner, sti-avhengig (first-passage).
 
     `tp_ret`/`sl_ret` er POSITIVE avstander i enkel-avkastning fra entry til hhv. TP og SL
     (f.eks. 0.03 = 3 %). Retningen avgjør fortegnet på banen som er gunstig. Ved samtidig
     treff samme dag teller vi SL først (samme konservative konvensjon som triple_barrier).
-    R: TP=+rr, SL=−1, tidsutløp = terminal bevegelse / risiko (delvis).
+    R: TP=+rr, SL=−1, tidsutløp = terminal bevegelse / risiko (delvis). Når `swap` er gitt
+    (#10) trekkes carry-kostnad fra hver bane pr EKSAKT holdetid (cpd·dager/sl_ret i R).
     """
     if tp_ret <= 0 or sl_ret <= 0:
         raise ValueError("tp_ret og sl_ret må være positive avstander")
@@ -140,6 +142,9 @@ def fhs_barrier_prob(returns: np.ndarray, as_of_idx: int, *, direction: str,
     rng = np.random.default_rng(seed + as_of_idx)
     n = len(pool)
     long = direction == "LONG"
+    cpd = 0.0
+    if swap:
+        cpd = swap.get("long_cost_pct_per_day" if long else "short_cost_pct_per_day", 0.0)
 
     outcomes = np.empty(n_paths)
     n_tp = n_sl = n_time = 0
@@ -155,14 +160,19 @@ def fhs_barrier_prob(returns: np.ndarray, as_of_idx: int, *, direction: str,
         t_tp, t_sl = (t_up, t_dn) if long else (t_dn, t_up)
         if t_sl <= t_tp and t_sl <= horizon:          # SL først (tie → SL)
             outcomes[k] = -1.0
+            held = t_sl + 1
             n_sl += 1
         elif t_tp < t_sl and t_tp <= horizon:
             outcomes[k] = rr
+            held = t_tp + 1
             n_tp += 1
         else:                                          # tidsutløp: delvis R
             term = level[-1] if long else -level[-1]
             outcomes[k] = term / sl_ret
+            held = horizon
             n_time += 1
+        if cpd:
+            outcomes[k] -= cpd * held / sl_ret         # carry over faktisk holdetid
 
     mean = float(np.mean(outcomes))
     se = float(np.std(outcomes, ddof=1) / math.sqrt(n_paths)) if n_paths > 1 else 0.0

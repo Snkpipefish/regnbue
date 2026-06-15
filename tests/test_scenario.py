@@ -81,3 +81,15 @@ def test_fhs_barrier_prob_rejects_nonpositive_distance():
     rets = rng.normal(0, 0.01, 200)
     with pytest.raises(ValueError):
         fhs_barrier_prob(rets, len(rets) - 1, direction="LONG", tp_ret=0.0, sl_ret=0.02)
+
+
+def test_fhs_barrier_prob_swap_lowers_expectancy_not_probs():
+    rng = np.random.default_rng(6)
+    rets = rng.normal(0, 0.012, 600)
+    kw = dict(direction="LONG", tp_ret=0.03, sl_ret=0.03, horizon=20, n_paths=4000, seed=2)
+    free = fhs_barrier_prob(rets, len(rets) - 1, **kw)
+    costed = fhs_barrier_prob(rets, len(rets) - 1, **kw,
+                              swap={"long_cost_pct_per_day": 0.002})
+    # Carry trekkes fra hver bane → lavere expectancy; barrierene (P(TP)) flyttes ikke.
+    assert costed.expectancy_r < free.expectancy_r
+    assert costed.prob_tp == free.prob_tp and costed.prob_sl == free.prob_sl

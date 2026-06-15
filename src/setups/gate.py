@@ -83,26 +83,38 @@ def _effective_n(dates: list[str], horizon_days: int) -> int:
 
 
 def neighbors_by_score(rows: list[PanelRow], current_score: float, direction: str,
-                       band: float) -> list[PanelRow]:
-    """Train-datoer med samme retning og aggregert score innenfor båndet."""
-    return [r for r in rows
-            if r.direction == direction and abs(r.score - current_score) <= band]
+                       band: float, coverage: frozenset[str] | None = None) -> list[PanelRow]:
+    """Train-datoer med samme retning og aggregert score innenfor båndet.
+
+    `coverage` (sett av tilgjengelige driver-navn): når gitt, kreves at naboen hadde NØYAKTIG
+    samme tilgjengelige drivere. Da renormaliseres scoren over samme vekt-basis, så score=0.3
+    betyr det samme på tvers av datoer (ellers er en 0.3 fra 2 drivere et annet objekt enn en
+    0.3 fra 4 — #7). Utelatt = gammel oppførsel (matcher kun på skalar score).
+    """
+    out = [r for r in rows
+           if r.direction == direction and abs(r.score - current_score) <= band]
+    if coverage is not None:
+        out = [r for r in out if frozenset(r.vector) == coverage]
+    return out
 
 
 def evaluate(rows: list[PanelRow], current_score: float, direction: str, *,
              band: float = 0.1, min_effective_n: int = 30,
              min_hit_rate_pct: float = 55.0, min_expectancy_r: float = 0.3,
-             horizon_days: int | None = None) -> BaseRate:
+             horizon_days: int | None = None,
+             coverage: frozenset[str] | None = None) -> BaseRate:
     """Vurder en setup mot historiske analoger (matchet på score-bånd + retning).
 
     Når `horizon_days` er gitt brukes EFFEKTIV n (ikke-overlappende forward-vinduer) i både
     n-terskelen og CI-bredden, så autokorrelerte naboer ikke gir falsk statistisk presisjon.
+    `coverage` aktiverer sammensetnings-bevisst matching (#7) — se `neighbors_by_score`.
     """
-    neighbors = neighbors_by_score(rows, current_score, direction, band)
+    neighbors = neighbors_by_score(rows, current_score, direction, band, coverage)
     n = len(neighbors)
     if n == 0:
-        return BaseRate(0, 0.0, (0.0, 0.0), 0.0, (0.0, 0.0), False,
-                        "ingen historiske analoger i score-båndet", n_eff=0)
+        why = ("ingen historiske analoger med samme drivere i score-båndet"
+               if coverage is not None else "ingen historiske analoger i score-båndet")
+        return BaseRate(0, 0.0, (0.0, 0.0), 0.0, (0.0, 0.0), False, why, n_eff=0)
 
     n_eff = _effective_n([r.date for r in neighbors], horizon_days) if horizon_days else n
     k = sum(1 for r in neighbors if r.hit)

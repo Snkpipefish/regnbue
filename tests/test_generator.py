@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 
+import pytest
+
 from setups import store
 from setups.generator import build_setup
-from setups.outcomes import build_scored_panel
+from setups.outcomes import build_scored_panel, swap_cost_r
 
 
 def _days(n: int, start="2022-01-01") -> list[str]:
@@ -71,3 +73,30 @@ def test_build_setup_enforces_sl_floor(tmp_path):
     assert setup.rr > 0 and setup.base_rate is not None
     # Gaten kjørte på effektiv n (horisont sendt inn).
     assert setup.base_rate.n_eff <= setup.base_rate.n
+
+
+def test_swap_cost_r_debit_credit_and_noop():
+    # Debet (positiv cpd) → positiv kostnad i R; kreditt (negativ) → negativ; ingen swap → 0.
+    assert swap_cost_r({"long_cost_pct_per_day": 0.001}, "LONG", 10, 100.0, 5.0) == \
+        pytest.approx(0.001 * 100.0 * 10 / 5.0)            # 0.2 R
+    assert swap_cost_r({"short_cost_pct_per_day": -0.001}, "SHORT", 10, 100.0, 5.0) < 0
+    assert swap_cost_r(None, "LONG", 10, 100.0, 5.0) == 0.0
+    assert swap_cost_r({"long_cost_pct_per_day": 0.001}, "LONG", 0, 100.0, 5.0) == 0.0
+
+
+def test_swap_lowers_panel_expectancy(tmp_path):
+    # Carry-kostnad (#10) trekkes fra hvert utfall pr holdetid → lavere expectancy, men
+    # antall treff (hit) er uendret (swap flytter ikke barrierene).
+    with store.connect(tmp_path / "g.db") as conn:
+        store.init_db(conn)
+        _seed_uptrend(conn)
+        sp = build_scored_panel(conn, _FP, horizon=10, min_history=60, step=1)
+        base = sp.outcomes(1.0, 2.0)
+        sp.swap = {"long_cost_pct_per_day": 0.003, "short_cost_pct_per_day": 0.003}
+        costed = sp.outcomes(1.0, 2.0)
+
+    assert len(base.rows) == len(costed.rows) > 30
+    base_exp = sum(r.outcome_r for r in base.rows) / len(base.rows)
+    costed_exp = sum(r.outcome_r for r in costed.rows) / len(costed.rows)
+    assert costed_exp < base_exp                          # carry reduserer expectancy
+    assert sum(r.hit for r in base.rows) == sum(r.hit for r in costed.rows)

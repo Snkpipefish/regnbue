@@ -144,3 +144,21 @@ def test_gate_uses_effective_n_with_horizon():
     assert without.passes and without.n_eff == 40
     withh = gate.evaluate(rows, 0.5, "LONG", min_effective_n=30, horizon_days=30)
     assert not withh.passes and withh.n_eff == 2 and "uavhengige" in withh.reason
+
+
+# ---------- sammensetnings-bevisst matching (#7) ----------
+def test_gate_coverage_matches_only_same_driver_set():
+    dates = _days(40)
+    full = [PanelRow(date=dates[i], vector={"a": 0.5, "b": 0.5}, direction="LONG",
+                     outcome_r=2.0, hit=True, score=0.5) for i in range(40)]
+    partial = [PanelRow(date=dates[i], vector={"a": 0.5}, direction="LONG",
+                        outcome_r=2.0, hit=True, score=0.5) for i in range(30)]
+    rows = full + partial
+    # Uten coverage: alle score-naboer teller.
+    assert gate.evaluate(rows, 0.5, "LONG", min_effective_n=30).n == 70
+    # Med coverage {a,b}: kun de med nøyaktig samme tilgjengelige drivere.
+    br = gate.evaluate(rows, 0.5, "LONG", min_effective_n=30, coverage=frozenset({"a", "b"}))
+    assert br.n == 40
+    # Coverage uten match → forklarende grunn.
+    none = gate.evaluate(rows, 0.5, "LONG", coverage=frozenset({"c"}))
+    assert not none.passes and "samme drivere" in none.reason

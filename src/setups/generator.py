@@ -58,7 +58,8 @@ def _fractal_levels(highs, lows, lo_idx, hi_idx, wing: int = 3):
 
 
 def _scenario_rate(closes: list[float], direction: str, entry: float, risk: float,
-                   reward: float, horizon: int, n_paths: int = 2000) -> dict | None:
+                   reward: float, horizon: int, n_paths: int = 2000,
+                   swap: dict | None = None) -> dict | None:
     """Forward sti-avhengig base-rate (P(TP før SL) + expectancy) fra FHS-fordelingen (#12).
 
     Returnerer summary-dict eller None hvis for kort/ugyldig historikk. Importeres lokalt så
@@ -76,7 +77,7 @@ def _scenario_rate(closes: list[float], direction: str, entry: float, risk: floa
             return None
         bp = fhs_barrier_prob(rets, len(rets) - 1, direction=direction,
                               tp_ret=reward / entry, sl_ret=risk / entry,
-                              horizon=horizon, n_paths=n_paths)
+                              horizon=horizon, n_paths=n_paths, swap=swap)
         return bp.summary()
     except Exception:
         return None
@@ -155,6 +156,10 @@ def build_setup(conn: sqlite3.Connection, fingerprint: dict, as_of: str, *,
         scored = build_scored_panel(conn, fingerprint, horizon=horizon,
                                     oos_start=br_cfg.get("oos_start"))
     outcomes_panel = scored.outcomes(sl_atr_eff, tp_atr_eff)
+    # #7: sammensetnings-bevisst matching (opt-in) — kun analoger med samme tilgjengelige
+    # drivere, så renormalisert score er sammenlignbar. Av som standard (låste terskler).
+    coverage = (frozenset(d.name for d in res.drivers if d.ok)
+                if br_cfg.get("match_coverage") else None)
     base_rate = gate.evaluate(
         outcomes_panel.train(),
         res.score, direction,
@@ -162,11 +167,13 @@ def build_setup(conn: sqlite3.Connection, fingerprint: dict, as_of: str, *,
         min_effective_n=br_cfg.get("min_effective_n", 30),
         min_hit_rate_pct=br_cfg.get("min_hit_rate_pct", 55.0),
         min_expectancy_r=br_cfg.get("min_expectancy_r", 0.3),
+        coverage=coverage,
         horizon_days=horizon,
     )
 
     # Forward, kalibrert base-rate fra scenario-fordelingen — alltid vist, gater kun ved opt-in.
-    scenario = _scenario_rate(bars.closes[:hi_idx], direction, entry, risk, reward, horizon)
+    scenario = _scenario_rate(bars.closes[:hi_idx], direction, entry, risk, reward, horizon,
+                              swap=fingerprint.get("swap"))
 
     reasons = []
     if res.grade.grade == "NONE":

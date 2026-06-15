@@ -2,8 +2,8 @@
 
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
-**Sist oppdatert:** 2026-06-15 (audit-fikser #1/#2/#3/#5 + strategiske grep #12 scenario-base-rate + #13 driver-IC)
-**Nåværende fase:** MVP live + scenario-generator bygget. **Neste: vurder å sette `engine: scenario` pr instrument (OOS-valider først), evt. #7/#10.**
+**Sist oppdatert:** 2026-06-15 (audit-fikser #1/#2/#3/#5 + #7 coverage-match + #10 swap + #12 scenario-base-rate + #13 driver-IC)
+**Nåværende fase:** MVP live + scenario-generator bygget. **Neste: OOS-valider opt-ins (`engine: scenario`, `match_coverage`) + fyll `swap`-rater pr instrument før de slås på.**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
 ---
@@ -118,11 +118,22 @@ den som ble publisert. Fire avgrensede korrekthetsfikser (alle med tester, 61 gr
   OOS pr driver (`_driver_ic`). IC≈0 = ingen påvist forward-info (kandidat for nedvekting),
   klart positiv = signal. Endrer ingen vekter automatisk — ærlig diagnostikk, printes i run().
 
-### Gjenstående forslag fra auditen (ikke gjort)
-- **#7/#9:** analog-matching på skalar score ignorerer driver-sammensetning + renormalisering
-  gjør score uforlignbar over tid; lineær additiv aggregering av ikke-monotone drivere.
-- **#10:** swap/financing ikke trukket inn i R:R/expectancy (PLAN §5b krever det) — mangler
-  swap-rate-datakilde wiret.
+### #7 + #10 (2026-06-15) — bygget
+- **#7 sammensetnings-bevisst matching:** `gate.evaluate(coverage=…)` / `neighbors_by_score`
+  krever at analoger hadde NØYAKTIG samme tilgjengelige drivere, så renormalisert score er
+  sammenlignbar (0.3 fra 2 drivere ≠ 0.3 fra 4). **Opt-in** via `base_rate.match_coverage:
+  true` i fingerprintet (av som standard — låste terskler endres ikke stille). Generator
+  beregner current-coverage fra `res.drivers` ok.
+- **#10 swap/carry i expectancy:** `outcomes.swap_cost_r` + `triple_barrier(return_held=True)`
+  trekker carry fra hvert panel-utfall pr FAKTISK holdetid; scenario-motoren gjør det samme
+  eksakt pr bane. Konfig pr fingerprint: `swap: {long_cost_pct_per_day, short_cost_pct_per_day}`
+  (positiv = debet, negativ = kreditt). Mangler ennå reell swap-rate-kilde wiret → må fylles
+  pr instrument (negativ-swap-instrumenter flagges, PLAN §5b). Av som standard (ingen swap-nøkkel).
+
+### Gjenstående forslag fra auditen (ikke gjort — bevisst utsatt)
+- **#9 ikke-lineær aggregering:** lineær additiv sum av ikke-monotone + monotone drivere til én
+  skalar visker ut struktur. Spekulativt modell-redesign; prosjektets eget hovedfunn tilsier
+  forsiktighet → egen beslutning før noe bygges.
 
 ## HOVEDFUNN (ikke gjenta feilene)
 - **Fundamentale lineære scorer forutsier IKKE forward-avkastning** på 30–120d (kalibrering flat/invertert,

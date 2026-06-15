@@ -73,15 +73,22 @@ class ScoredPanel:
     bars: Bars
     horizon: int
     rows: list[ScoredRow] = field(default_factory=list)
+    swap: dict | None = None   # {long_cost_pct_per_day, short_cost_pct_per_day} (#10)
 
     def outcomes(self, sl_atr: float, tp_atr: float) -> Panel:
-        """Materialiser et Panel med triple-barrier-utfall for gitte ATR-multipler."""
+        """Materialiser et Panel med triple-barrier-utfall for gitte ATR-multipler.
+
+        Trekker carry/swap fra utfallet pr faktisk holdetid når `swap` er satt (#10).
+        """
         rr = tp_atr / sl_atr if sl_atr else 0.0
         panel = Panel(instrument=self.instrument)
         for r in self.rows:
-            label, outcome_r = triple_barrier(
+            sl_dist = sl_atr * r.atr
+            label, outcome_r, held = triple_barrier(
                 self.bars, r.bar_index, r.direction,
-                sl_atr * r.atr, tp_atr * r.atr, self.horizon, rr)
+                sl_dist, tp_atr * r.atr, self.horizon, rr, return_held=True)
+            outcome_r -= swap_cost_r(self.swap, r.direction, held,
+                                     self.bars.closes[r.bar_index], sl_dist)
             panel.rows.append(PanelRow(
                 date=r.date, vector=r.vector, direction=r.direction,
                 outcome_r=outcome_r, hit=(label == "TP"), score=r.score, oos=r.oos))
@@ -116,11 +123,12 @@ def atr_series(bars: Bars, window: int = 14) -> list[float | None]:
 
 
 def triple_barrier(bars: Bars, i: int, direction: str, sl_dist: float, tp_dist: float,
-                   horizon: int, rr: float) -> tuple[str, float]:
+                   horizon: int, rr: float, *, return_held: bool = False):
     """Utfall fra inngang ved bar `i` (close) over de neste `horizon` barene.
 
     Konservativ ved tvetydig bar: sjekker SL før TP, så et 'både og'-treff teller som SL.
-    Returnerer (label, R). label ∈ {TP, SL, TIME}.
+    Returnerer (label, R). Med `return_held=True`: (label, R, antall_barer_holdt) — brukt til
+    å trekke inn carry/swap pr faktisk holdetid (#10). label ∈ {TP, SL, TIME}.
     """
     entry = bars.closes[i]
     last = min(i + horizon, len(bars.closes) - 1)
@@ -128,19 +136,35 @@ def triple_barrier(bars: Bars, i: int, direction: str, sl_dist: float, tp_dist: 
         hi, lo = bars.highs[j], bars.lows[j]
         if direction == "LONG":
             if lo <= entry - sl_dist:
-                return "SL", -1.0
+                return ("SL", -1.0, j - i) if return_held else ("SL", -1.0)
             if hi >= entry + tp_dist:
-                return "TP", rr
+                return ("TP", rr, j - i) if return_held else ("TP", rr)
         else:  # SHORT
             if hi >= entry + sl_dist:
-                return "SL", -1.0
+                return ("SL", -1.0, j - i) if return_held else ("SL", -1.0)
             if lo <= entry - tp_dist:
-                return "TP", rr
+                return ("TP", rr, j - i) if return_held else ("TP", rr)
     # Tidsutløp: delvis resultat i R. close[last] ligger pr definisjon mellom barrierene
     # (begge ble sjekket t.o.m. `last`), så move/sl_dist er allerede innenfor (-1, +rr).
     close = bars.closes[last]
     move = (close - entry) if direction == "LONG" else (entry - close)
-    return "TIME", move / sl_dist if sl_dist else 0.0
+    r = move / sl_dist if sl_dist else 0.0
+    return ("TIME", r, last - i) if return_held else ("TIME", r)
+
+
+def swap_cost_r(swap: dict | None, direction: str, days_held: int,
+                entry: float, sl_dist: float) -> float:
+    """Carry/swap-kostnad over holdetiden, uttrykt i R (risiko-enheter).
+
+    `swap`: {long_cost_pct_per_day, short_cost_pct_per_day} der POSITIV = daglig debet
+    (du betaler) som andel av notional, NEGATIV = kreditt. Kostnaden i pris = cpd·entry·dager;
+    i R deles på sl_dist. Skilling belaster swap daglig (§5b), så dette gjør expectancy ærlig.
+    """
+    if not swap or sl_dist <= 0 or entry <= 0 or days_held <= 0:
+        return 0.0
+    key = "long_cost_pct_per_day" if direction == "LONG" else "short_cost_pct_per_day"
+    cpd = swap.get(key, 0.0)
+    return cpd * entry * days_held / sl_dist
 
 
 def build_scored_panel(conn: sqlite3.Connection, fingerprint: dict, *,
@@ -150,7 +174,8 @@ def build_scored_panel(conn: sqlite3.Connection, fingerprint: dict, *,
     symbol = fingerprint["ticker"]
     bars = load_bars(conn, symbol)
     atr = atr_series(bars, atr_window)
-    sp = ScoredPanel(instrument=fingerprint.get("id", symbol), bars=bars, horizon=horizon)
+    sp = ScoredPanel(instrument=fingerprint.get("id", symbol), bars=bars, horizon=horizon,
+                     swap=fingerprint.get("swap"))
 
     last_decision = len(bars.closes) - horizon - 1
     for i in range(min_history, last_decision + 1, step):
