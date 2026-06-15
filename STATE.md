@@ -2,8 +2,8 @@
 
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
-**Sist oppdatert:** 2026-05-31 (ALLE 22 instrumenter fundamentalt tilpasset — instrument-tilpasning FERDIG)
-**Nåværende fase:** MVP live + scenario-generator bygget. **Neste: instrument-tilpasning for resten (egne drivere pr instrument).**
+**Sist oppdatert:** 2026-06-15 (audit-fikser #1/#2/#3/#5 + strategiske grep #12 scenario-base-rate + #13 driver-IC)
+**Nåværende fase:** MVP live + scenario-generator bygget. **Neste: vurder å sette `engine: scenario` pr instrument (OOS-valider først), evt. #7/#10.**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
 ---
@@ -86,6 +86,43 @@ ingen setup uten statistisk støtte.
 `price_ratio`, `seasonal_anomaly`, `degree_days_anomaly`. Lag nye ved behov med `@register`.
 
 ---
+
+## AUDIT-FIKSER i trading-logikken (2026-06-15)
+Gjennomgang av setup-genereringen avdekket at base-rate-gaten validerte en *annen* trade enn
+den som ble publisert. Fire avgrensede korrekthetsfikser (alle med tester, 61 grønne):
+- **#1 R:R-justert base-rate:** panelet ble bygd med faste 1×/2×ATR mens setup-en hadde
+  nivåbasert R:R → gaten beskrev feil trade. Splittet `build_panel` i RR-uavhengig
+  `build_scored_panel` (dyr scoring, bygges én gang i `run.py`) + `ScoredPanel.outcomes(sl_atr,
+  tp_atr)` (billig barriere). `generator` materialiserer nå utfall med setup-ens *faktiske*
+  SL/TP-avstander (`risk/atr`, `reward/atr`).
+- **#2 effektiv n:** Wilson/expectancy-CI antok uavhengige obs, men PANEL_STEP=10 < horizon=30
+  → overlappende forward-vinduer → falsk presisjon. `gate.evaluate(horizon_days=…)` teller nå
+  ikke-overlappende blokker (`_effective_n`) og bruker det i n-terskel + CI-bredde. Eksponert
+  som `BaseRate.n_eff` (gull: n=31 → n_eff=23).
+- **#3 COT-frigjøringslag:** `ctx.cot()` filtrerte på `report_date<=as_of`, men CFTC slipper
+  tirsdagsdata først fredag (+3d) → ~3 dagers look-ahead. Nå `report_date+3d<=as_of`.
+- **#5 SL-gulv:** `sl_floor_atr=0.5` hindrer at en swing rett ved entry gir mikro-risiko og
+  kunstig høy R:R som stoppes ut umiddelbart.
+- **#4 (TIME-klipp) forkastet:** viste seg å være no-op — barriere-løkka skanner t.o.m. siste
+  bar, så TIME-`outcome_r` ligger allerede i (−1, +rr).
+
+### Strategiske grep (2026-06-15) — bygget
+- **#12 forward base-rate fra scenario-fordelingen:** `scenario.fhs_barrier_prob` simulerer
+  sti-avhengig P(TP før SL) + expectancy (i R) fra FHS-baner med setup-ens entry/SL/TP.
+  `generator` fester `scenario`-summary på hver setup (vises i `setups.json` ved siden av
+  analog-base-raten). Krysssjekk gull: analog exp −0.12R / scenario exp −0.12R, P(TP)≈48% —
+  to uavhengige metoder enige. **Opt-in gating:** sett `base_rate.engine: scenario` (+
+  `min_prob_tp`) i et fingerprint for å la scenario-motoren gate publisering i stedet for
+  analog. Standard = `analog` (uendret), så ingen av de 22 flippes stille.
+- **#13 per-driver IC:** `validate.py` regner `driver_ic` = corr(driver-score, forward-R) på
+  OOS pr driver (`_driver_ic`). IC≈0 = ingen påvist forward-info (kandidat for nedvekting),
+  klart positiv = signal. Endrer ingen vekter automatisk — ærlig diagnostikk, printes i run().
+
+### Gjenstående forslag fra auditen (ikke gjort)
+- **#7/#9:** analog-matching på skalar score ignorerer driver-sammensetning + renormalisering
+  gjør score uforlignbar over tid; lineær additiv aggregering av ikke-monotone drivere.
+- **#10:** swap/financing ikke trukket inn i R:R/expectancy (PLAN §5b krever det) — mangler
+  swap-rate-datakilde wiret.
 
 ## HOVEDFUNN (ikke gjenta feilene)
 - **Fundamentale lineære scorer forutsier IKKE forward-avkastning** på 30–120d (kalibrering flat/invertert,

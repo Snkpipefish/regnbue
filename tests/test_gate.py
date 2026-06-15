@@ -86,7 +86,7 @@ def _rows(n, hit, r_value, direction="LONG", score=0.5):
 def test_gate_rejects_too_few_neighbors():
     rows = _rows(10, hit=True, r_value=2.0)
     br = gate.evaluate(rows, 0.5, "LONG", min_effective_n=30)
-    assert not br.passes and "for få analoger" in br.reason
+    assert not br.passes and "for få" in br.reason
     assert br.n == 10
 
 
@@ -120,3 +120,27 @@ def test_wilson_bounds():
     lo, hi = gate._wilson(30, 30)
     assert 0.8 < lo <= 1.0 and hi == 1.0
     assert gate._wilson(0, 0) == (0.0, 0.0)
+
+
+# ---------- effektiv n (overlappende forward-vinduer) ----------
+def test_effective_n_collapses_overlapping_windows():
+    # 40 analoger på påfølgende dager med horizon 30 → vinduene overlapper kraftig →
+    # bare ~2 uavhengige blokker, ikke 40.
+    dates = _days(40)
+    assert gate._effective_n(dates, 30) == 2
+    # Spredt med >=30 dagers mellomrom → hver er uavhengig.
+    spread = [(date.fromisoformat("2020-01-01") + timedelta(days=40 * i)).isoformat()
+              for i in range(5)]
+    assert gate._effective_n(spread, 30) == 5
+
+
+def test_gate_uses_effective_n_with_horizon():
+    # 40 påfølgende dager består uten horisont (n_eff=n=40) men FALLER med horizon=30
+    # fordi de overlappende vinduene bare gir ~2 uavhengige observasjoner.
+    dates = _days(40)
+    rows = [PanelRow(date=dates[i], vector={"d": 0.5}, direction="LONG",
+                     outcome_r=2.0, hit=True, score=0.5) for i in range(40)]
+    without = gate.evaluate(rows, 0.5, "LONG", min_effective_n=30)
+    assert without.passes and without.n_eff == 40
+    withh = gate.evaluate(rows, 0.5, "LONG", min_effective_n=30, horizon_days=30)
+    assert not withh.passes and withh.n_eff == 2 and "uavhengige" in withh.reason

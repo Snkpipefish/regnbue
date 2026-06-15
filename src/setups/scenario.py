@@ -94,6 +94,84 @@ def fhs_scenario(returns: np.ndarray, as_of_idx: int, horizon: int = 20,
     return Scenario(as_of_idx, horizon, np.expm1(paths))   # tilbake til enkel avkastning
 
 
+# --- sti-avhengig barriere-sannsynlighet (forward base-rate fra fordelingen) ---
+@dataclass
+class BarrierProb:
+    n_paths: int
+    prob_tp: float          # andel baner som treffer TP først
+    prob_sl: float          # andel som treffer SL først
+    prob_time: float        # andel som verken (tidsutløp)
+    expectancy_r: float     # forventet utfall i R (TP=+rr, SL=-1, TIME=delvis)
+    expectancy_ci: tuple[float, float]
+
+    def summary(self) -> dict:
+        return {
+            "engine": "scenario",
+            "n_paths": self.n_paths,
+            "prob_tp": round(self.prob_tp, 4),
+            "prob_sl": round(self.prob_sl, 4),
+            "prob_time": round(self.prob_time, 4),
+            "expectancy_r": round(self.expectancy_r, 4),
+            "expectancy_ci": [round(self.expectancy_ci[0], 4), round(self.expectancy_ci[1], 4)],
+        }
+
+
+def fhs_barrier_prob(returns: np.ndarray, as_of_idx: int, *, direction: str,
+                     tp_ret: float, sl_ret: float, horizon: int = 20, n_paths: int = 2000,
+                     mean_block: int = 5, lam: float = 0.94,
+                     resid_pool: np.ndarray | None = None, seed: int = 0) -> BarrierProb:
+    """Forward P(TP før SL) + expectancy fra FHS-baner, sti-avhengig (first-passage).
+
+    `tp_ret`/`sl_ret` er POSITIVE avstander i enkel-avkastning fra entry til hhv. TP og SL
+    (f.eks. 0.03 = 3 %). Retningen avgjør fortegnet på banen som er gunstig. Ved samtidig
+    treff samme dag teller vi SL først (samme konservative konvensjon som triple_barrier).
+    R: TP=+rr, SL=−1, tidsutløp = terminal bevegelse / risiko (delvis).
+    """
+    if tp_ret <= 0 or sl_ret <= 0:
+        raise ValueError("tp_ret og sl_ret må være positive avstander")
+    rr = tp_ret / sl_ret
+    hist = returns[: as_of_idx + 1]
+    vol = ewma_vol(hist, lam)
+    sigma_now = vol[-1]
+    z = hist / vol
+    pool = z if resid_pool is None else resid_pool
+    pool = pool[np.isfinite(pool)]
+    pool = np.clip(pool, -8.0, 8.0)
+    rng = np.random.default_rng(seed + as_of_idx)
+    n = len(pool)
+    long = direction == "LONG"
+
+    outcomes = np.empty(n_paths)
+    n_tp = n_sl = n_time = 0
+    for k in range(n_paths):
+        idx = _stationary_block_indices(n, horizon, mean_block, rng)
+        level = np.expm1(np.cumsum(pool[idx] * sigma_now))   # enkel-avkastning pr dag
+        # gunstig/ugunstig grense avhengig av retning
+        up_hit = np.flatnonzero(level >= (tp_ret if long else sl_ret))
+        dn_hit = np.flatnonzero(level <= -(sl_ret if long else tp_ret))
+        t_up = up_hit[0] if up_hit.size else horizon + 1
+        t_dn = dn_hit[0] if dn_hit.size else horizon + 1
+        # for LONG: TP=opp, SL=ned; for SHORT: TP=ned, SL=opp
+        t_tp, t_sl = (t_up, t_dn) if long else (t_dn, t_up)
+        if t_sl <= t_tp and t_sl <= horizon:          # SL først (tie → SL)
+            outcomes[k] = -1.0
+            n_sl += 1
+        elif t_tp < t_sl and t_tp <= horizon:
+            outcomes[k] = rr
+            n_tp += 1
+        else:                                          # tidsutløp: delvis R
+            term = level[-1] if long else -level[-1]
+            outcomes[k] = term / sl_ret
+            n_time += 1
+
+    mean = float(np.mean(outcomes))
+    se = float(np.std(outcomes, ddof=1) / math.sqrt(n_paths)) if n_paths > 1 else 0.0
+    return BarrierProb(
+        n_paths=n_paths, prob_tp=n_tp / n_paths, prob_sl=n_sl / n_paths,
+        prob_time=n_time / n_paths, expectancy_r=mean,
+        expectancy_ci=(mean - 1.96 * se, mean + 1.96 * se))
+
+
 # --- ærlig evaluering: CRPS + PIT ---
 def crps(samples: np.ndarray, y: float) -> float:
     """CRPS for et ensemble (lavere = bedre). Sortert O(n log n)-estimator."""

@@ -13,7 +13,7 @@ import argparse
 
 from setups import publish, store
 from setups.generator import build_setup
-from setups.outcomes import build_panel
+from setups.outcomes import build_scored_panel
 from setups.score.engine import load_fingerprint
 
 # Sampling-tetthet for base-rate-panelet (hver N. handledag). Ytelse, ikke terskel-tuning.
@@ -50,9 +50,9 @@ def run(db_path=store.DEFAULT_DB_PATH, fingerprints: list[str] | None = None,
             # terskel-tuning): analog-tellingen holder n≥30 innen score-båndet, og gaten
             # avviser uansett ærlig de tynne. Vær-driverne er tunge pr kall, så dette holder
             # publiserings-kjøringen håndterbar (~minutter, ikke ~time) for alle 22 instrumenter.
-            panel = build_panel(conn, fp, horizon=br.get("horizon_days", 30),
-                                oos_start=br.get("oos_start"), step=PANEL_STEP)
-            setup = build_setup(conn, fp, day, panel=panel)
+            scored = build_scored_panel(conn, fp, horizon=br.get("horizon_days", 30),
+                                        oos_start=br.get("oos_start"), step=PANEL_STEP)
+            setup = build_setup(conn, fp, day, panel=scored)
             if setup is not None:
                 setups.append(setup)
     payload = publish.build_payload(setups, resolved_as_of or "")

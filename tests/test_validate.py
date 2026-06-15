@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from setups.outcomes import Panel, PanelRow
-from setups.validate import validate
+from setups.validate import _driver_ic, validate
 
 
 def _row(date, score, direction, r, oos):
@@ -30,3 +30,17 @@ def test_validate_no_neighbors_when_too_far():
     v = validate(Panel("X", train + oos), band=0.1, min_effective_n=30,
                  min_hit_rate_pct=55, min_expectancy_r=0.3)
     assert v.n_predicted == 0 and v.n_gate_pass == 0
+
+
+def test_driver_ic_separates_signal_from_noise():
+    # 'good' korrelerer perfekt med utfallet; 'flat' er konstant → ingen IC (#13).
+    rows = []
+    for i in range(40):
+        s = (i - 20) / 20.0
+        rows.append(PanelRow(date=f"2024-{(i % 12) + 1:02d}-01",
+                             vector={"good": s, "flat": 0.5},
+                             direction="LONG" if s >= 0 else "SHORT",
+                             outcome_r=2.0 * s, hit=s > 0, score=s, oos=True))
+    ic = _driver_ic(rows)
+    assert ic["good"][0] > 0.95 and ic["good"][1] == 40   # sterk forward-IC
+    assert ic["flat"][0] == 0.0                           # konstant → null varians → IC 0

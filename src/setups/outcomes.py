@@ -48,6 +48,46 @@ class Panel:
         return [r for r in self.rows if r.oos]
 
 
+@dataclass
+class ScoredRow:
+    """RR-uavhengig del av en paneldato: score-vektor + ATR ved beslutnings-baren."""
+    date: str
+    bar_index: int
+    score: float
+    direction: str
+    vector: dict[str, float]
+    atr: float
+    oos: bool = False
+
+
+@dataclass
+class ScoredPanel:
+    """Scoringen (dyr, RR-uavhengig) skilt fra utfalls-barrieren (billig, RR-avhengig).
+
+    Slik kan vi score historikken ÉN gang pr instrument og så materialisere base-rate-
+    utfall med NØYAKTIG de SL/TP-avstandene den publiserte setup-en bruker (audit-fiks:
+    før brukte panelet faste 1×/2×ATR mens setup-en hadde nivåbasert R:R → gaten validerte
+    en annen trade enn den som ble publisert).
+    """
+    instrument: str
+    bars: Bars
+    horizon: int
+    rows: list[ScoredRow] = field(default_factory=list)
+
+    def outcomes(self, sl_atr: float, tp_atr: float) -> Panel:
+        """Materialiser et Panel med triple-barrier-utfall for gitte ATR-multipler."""
+        rr = tp_atr / sl_atr if sl_atr else 0.0
+        panel = Panel(instrument=self.instrument)
+        for r in self.rows:
+            label, outcome_r = triple_barrier(
+                self.bars, r.bar_index, r.direction,
+                sl_atr * r.atr, tp_atr * r.atr, self.horizon, rr)
+            panel.rows.append(PanelRow(
+                date=r.date, vector=r.vector, direction=r.direction,
+                outcome_r=outcome_r, hit=(label == "TP"), score=r.score, oos=r.oos))
+        return panel
+
+
 def load_bars(conn: sqlite3.Connection, symbol: str, tf: str = "D1") -> Bars:
     rows = conn.execute(
         "SELECT substr(ts,1,10), high, low, close FROM prices "
@@ -96,22 +136,21 @@ def triple_barrier(bars: Bars, i: int, direction: str, sl_dist: float, tp_dist: 
                 return "SL", -1.0
             if lo <= entry - tp_dist:
                 return "TP", rr
-    # Tidsutløp: delvis resultat i R.
+    # Tidsutløp: delvis resultat i R. close[last] ligger pr definisjon mellom barrierene
+    # (begge ble sjekket t.o.m. `last`), så move/sl_dist er allerede innenfor (-1, +rr).
     close = bars.closes[last]
     move = (close - entry) if direction == "LONG" else (entry - close)
     return "TIME", move / sl_dist if sl_dist else 0.0
 
 
-def build_panel(conn: sqlite3.Connection, fingerprint: dict, *,
-                sl_atr: float = 1.0, tp_atr: float = 2.0, horizon: int = 30,
-                atr_window: int = 14, oos_start: str | None = None,
-                step: int = 1, min_history: int = 220) -> Panel:
-    """Bygg look-ahead-trygt panel av (score-vektor, utfall) over historikken."""
+def build_scored_panel(conn: sqlite3.Connection, fingerprint: dict, *,
+                       horizon: int = 30, atr_window: int = 14, oos_start: str | None = None,
+                       step: int = 1, min_history: int = 220) -> ScoredPanel:
+    """Score historikken look-ahead-trygt (RR-uavhengig). Den dyre delen — caches/gjenbrukes."""
     symbol = fingerprint["ticker"]
     bars = load_bars(conn, symbol)
     atr = atr_series(bars, atr_window)
-    rr = tp_atr / sl_atr
-    panel = Panel(instrument=fingerprint.get("id", symbol))
+    sp = ScoredPanel(instrument=fingerprint.get("id", symbol), bars=bars, horizon=horizon)
 
     last_decision = len(bars.closes) - horizon - 1
     for i in range(min_history, last_decision + 1, step):
@@ -127,12 +166,24 @@ def build_panel(conn: sqlite3.Connection, fingerprint: dict, *,
         if not any(dr.ok for dr in res.drivers):
             continue
         vector = {dr.name: dr.score for dr in res.drivers if dr.ok}
-        direction = "LONG" if res.score >= 0 else "SHORT"
-        label, outcome_r = triple_barrier(bars, i, direction, sl_atr * a, tp_atr * a,
-                                           horizon, rr)
-        panel.rows.append(PanelRow(
-            date=d, vector=vector, direction=direction, outcome_r=outcome_r,
-            hit=(label == "TP"), score=res.score,
+        sp.rows.append(ScoredRow(
+            date=d, bar_index=i, score=res.score,
+            direction="LONG" if res.score >= 0 else "SHORT", vector=vector, atr=a,
             oos=(oos_start is not None and d >= oos_start),
         ))
-    return panel
+    return sp
+
+
+def build_panel(conn: sqlite3.Connection, fingerprint: dict, *,
+                sl_atr: float = 1.0, tp_atr: float = 2.0, horizon: int = 30,
+                atr_window: int = 14, oos_start: str | None = None,
+                step: int = 1, min_history: int = 220) -> Panel:
+    """Bygg look-ahead-trygt panel av (score-vektor, utfall) for faste ATR-multipler.
+
+    Tynn wrapper over `build_scored_panel(...).outcomes(...)` — beholdt for bakoverkompat
+    (validate/tester). Generator-en bruker `build_scored_panel` direkte for å materialisere
+    utfall med setup-ens egne SL/TP-avstander.
+    """
+    sp = build_scored_panel(conn, fingerprint, horizon=horizon, atr_window=atr_window,
+                            oos_start=oos_start, step=step, min_history=min_history)
+    return sp.outcomes(sl_atr, tp_atr)

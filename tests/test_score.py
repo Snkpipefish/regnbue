@@ -94,6 +94,23 @@ def test_cot_spec_net_percentile_extreme_long(conn):
     assert res.ok and res.score > 0.9  # høyeste net på hele lookback → p≈1
 
 
+def test_cot_release_lag_excludes_unreleased(conn):
+    # COT måles tirsdag, men slippes først ~fredag (+3d). En rapport datert D skal IKKE være
+    # synlig på en beslutningsdato før D+3 (ellers look-ahead). To ukentlige rapporter:
+    for rd, ls in (("2024-01-02", 1000), ("2024-01-09", 9000)):
+        conn.execute(
+            "INSERT INTO cot_positions(market,report_date,report_type,long_spec,short_spec,"
+            "open_interest) VALUES (?,?,?,?,?,?)",
+            ("Gold", rd, "disaggregated", ls, 500, 5000),
+        )
+    # På rapportdagen selv er den nye rapporten ikke offentlig ennå → kun den gamle teller.
+    on_day = ScoreContext(conn, as_of="2024-01-09").cot("Gold")
+    assert [r["report_date"] for r in on_day] == ["2024-01-02"]
+    # 3 dager senere er den sluppet.
+    released = ScoreContext(conn, as_of="2024-01-12").cot("Gold")
+    assert [r["report_date"] for r in released] == ["2024-01-02", "2024-01-09"]
+
+
 def test_etf_flow_inflow_is_bullish(conn):
     # ETF-beholdning stiger jevnt → siste vindus-endring positiv → bullish (bull_when high).
     dates = _days(120)

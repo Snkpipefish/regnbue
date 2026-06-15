@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from datetime import date
 
 from setups.outcomes import PanelRow
 
@@ -32,6 +33,8 @@ class BaseRate:
     expectancy_ci: tuple[float, float]
     passes: bool
     reason: str
+    # uavhengige analoger (ikke-overlappende forward-vinduer); = n hvis horisont ukjent
+    n_eff: int = 0
 
 
 def _wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
@@ -45,7 +48,8 @@ def _wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
     return (max(0.0, center - half), min(1.0, center + half))
 
 
-def _mean_ci(values: list[float], z: float = 1.96) -> tuple[float, tuple[float, float]]:
+def _mean_ci(values: list[float], z: float = 1.96,
+             n_eff: float | None = None) -> tuple[float, tuple[float, float]]:
     n = len(values)
     if n == 0:
         return (0.0, (0.0, 0.0))
@@ -53,8 +57,29 @@ def _mean_ci(values: list[float], z: float = 1.96) -> tuple[float, tuple[float, 
     if n == 1:
         return (mean, (mean, mean))
     var = sum((v - mean) ** 2 for v in values) / (n - 1)
-    se = math.sqrt(var / n)
+    # Standardfeilen bruker EFFEKTIV n (uavhengige obs), ikke rå n: overlappende forward-
+    # vinduer er autokorrelerte, så rå-n gir for smal CI (falsk presisjon).
+    m = n_eff if n_eff and n_eff > 1 else n
+    se = math.sqrt(var / m)
     return (mean, (mean - z * se, mean + z * se))
+
+
+def _effective_n(dates: list[str], horizon_days: int) -> int:
+    """Antall ikke-overlappende forward-vinduer blant analog-datoene (grådig blokk-telling).
+
+    To analoger hvis inngangsdatoer ligger < horizon dager fra hverandre deler det meste av
+    forward-vinduet → tilnærmet ÉN uavhengig observasjon. Dette korrigerer den falske
+    presisjonen rå n ga base-rate-CI-ene (audit-fiks).
+    """
+    if not dates:
+        return 0
+    ds = sorted(date.fromisoformat(d[:10]) for d in dates)
+    blocks, last = 1, ds[0]
+    for d in ds[1:]:
+        if (d - last).days >= horizon_days:
+            blocks += 1
+            last = d
+    return blocks
 
 
 def neighbors_by_score(rows: list[PanelRow], current_score: float, direction: str,
@@ -66,22 +91,30 @@ def neighbors_by_score(rows: list[PanelRow], current_score: float, direction: st
 
 def evaluate(rows: list[PanelRow], current_score: float, direction: str, *,
              band: float = 0.1, min_effective_n: int = 30,
-             min_hit_rate_pct: float = 55.0, min_expectancy_r: float = 0.3) -> BaseRate:
-    """Vurder en setup mot historiske analoger (matchet på score-bånd + retning)."""
+             min_hit_rate_pct: float = 55.0, min_expectancy_r: float = 0.3,
+             horizon_days: int | None = None) -> BaseRate:
+    """Vurder en setup mot historiske analoger (matchet på score-bånd + retning).
+
+    Når `horizon_days` er gitt brukes EFFEKTIV n (ikke-overlappende forward-vinduer) i både
+    n-terskelen og CI-bredden, så autokorrelerte naboer ikke gir falsk statistisk presisjon.
+    """
     neighbors = neighbors_by_score(rows, current_score, direction, band)
     n = len(neighbors)
     if n == 0:
         return BaseRate(0, 0.0, (0.0, 0.0), 0.0, (0.0, 0.0), False,
-                        "ingen historiske analoger i score-båndet")
+                        "ingen historiske analoger i score-båndet", n_eff=0)
 
+    n_eff = _effective_n([r.date for r in neighbors], horizon_days) if horizon_days else n
     k = sum(1 for r in neighbors if r.hit)
     hit_rate = k / n
-    hr_ci = _wilson(k, n)
-    expectancy, exp_ci = _mean_ci([r.outcome_r for r in neighbors])
+    # CI-er på effektiv n: skaler Wilson-tellingen til n_eff (andelen er uendret) og bruk
+    # n_eff i expectancy-standardfeilen.
+    hr_ci = _wilson(hit_rate * n_eff, n_eff)
+    expectancy, exp_ci = _mean_ci([r.outcome_r for r in neighbors], n_eff=n_eff)
 
     reasons: list[str] = []
-    if n < min_effective_n:
-        reasons.append(f"for få analoger (n={n} < {min_effective_n})")
+    if n_eff < min_effective_n:
+        reasons.append(f"for få uavhengige analoger (n_eff={n_eff} < {min_effective_n}; n={n})")
     if hr_ci[0] * 100 < min_hit_rate_pct:
         reasons.append(
             f"hit-rate nedre CI {hr_ci[0]*100:.0f}% < {min_hit_rate_pct:.0f}%")
@@ -94,4 +127,4 @@ def evaluate(rows: list[PanelRow], current_score: float, direction: str, *,
     reason = "godkjent" if passes else "; ".join(reasons)
     return BaseRate(n, round(hit_rate, 4), (round(hr_ci[0], 4), round(hr_ci[1], 4)),
                     round(expectancy, 4), (round(exp_ci[0], 4), round(exp_ci[1], 4)),
-                    passes, reason)
+                    passes, reason, n_eff=n_eff)

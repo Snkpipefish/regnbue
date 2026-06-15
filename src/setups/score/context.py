@@ -11,6 +11,7 @@ from __future__ import annotations
 import sqlite3
 from bisect import bisect_right
 from dataclasses import dataclass
+from datetime import date, timedelta
 
 # --- cache for FULL serier (panel-bygging re-scorer pr dato; uten cache gjør hver driver en
 #     full SQL-henting + ev. spread-/ratio-merge pr kall). Vi henter HELE serien én gang og
@@ -179,6 +180,14 @@ class ScoreContext:
         return [(r[0], r[1]) for r in rows]
 
     # --- COT-posisjonering ---
+    # CFTC måler posisjoner pr tirsdag (`report_date`) men PUBLISERER dem først påfølgende
+    # fredag (~3 dager). På en historisk beslutningsdato tirsdag–torsdag var siste tirsdags
+    # rapport altså ikke offentlig ennå; å bruke den ville være look-ahead. Vi krever derfor
+    # report_date + lag <= as_of.
+    COT_RELEASE_LAG_DAYS = 3
+
     def cot(self, market: str) -> list[sqlite3.Row]:
         rdates, rows = _full_cot(self.conn, market)
-        return rows[:bisect_right(rdates, self.as_of)]
+        cutoff = (date.fromisoformat(self.as_of)
+                  - timedelta(days=self.COT_RELEASE_LAG_DAYS)).isoformat()
+        return rows[:bisect_right(rdates, cutoff)]

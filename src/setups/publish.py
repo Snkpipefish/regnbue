@@ -39,6 +39,7 @@ def _setup_to_signal(s: Setup) -> dict:
         "atr": s.atr,
         "reject_reason": s.reject_reason,
         "base_rate": br,
+        "scenario": s.scenario,
         "drivers": s.drivers,
     }
 
