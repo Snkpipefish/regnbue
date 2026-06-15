@@ -185,6 +185,12 @@ Kjørt via `/tmp/oos_check.py`-mønster (= `validate.run` + agreement-variant). 
   skader ekte-historikk-instrumenter (audusd −19pp, wti −15pp, gull −10pp sign-agreement). COT
   bidrar i ensemblet selv med svak egen-IC. **Behold COT.** Ablasjon > marginal-IC for å vurdere
   drivere. Verktøy: `scripts/driver_ablation.py` (rører ikke produksjonsfiler).
+- **Walk-forward (2026-06-16, `--walk-forward`): gulls «65 %» var en 2024-fold-ARTEFAKT.** Over alle
+  år-folder snitter gull 50 % fortegns-treff (svinger 24–80 %). INGEN instrument når ~60 % stabilt:
+  beste (btcusd 63 %, gbpusd 62 %, audusd 61 %) dipper jevnlig til 48–52 % → nedre CI langt under
+  gatens 55 %-bar. Ett snitt overstiger edge; **walk-forward er den ærlige testen.** FX carry-pairene
+  (audusd/gbpusd/usdjpy) klynger svakt >50 % — hypotese for framtidig forhåndsregistrert test, ikke
+  handle på nå. Bekrefter: ingen fundamental retnings-edge på 30–120d holder OOS → fordeling-først.
 
 ## Scenario-generator (bygget 2026-05-31)
 - `scenario.py` — FHS (EWMA-vol + standardiserte residualer + stationary block bootstrap) → betinget
