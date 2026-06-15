@@ -40,6 +40,8 @@ def _setup_to_signal(s: Setup) -> dict:
         "reject_reason": s.reject_reason,
         "base_rate": br,
         "scenario": s.scenario,
+        "data_quality": s.data_quality,
+        "history_years": s.history_years,
         "drivers": s.drivers,
     }
 

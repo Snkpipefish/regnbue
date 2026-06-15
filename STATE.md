@@ -2,8 +2,8 @@
 
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
-**Sist oppdatert:** 2026-06-16 (OOS-validert hele universet + EXP-1 COT-ablasjon avkreftet → behold COT)
-**Nåværende fase:** MVP live + scenario-generator bygget. **Neste: bekreft EXP-1 på neste forward-kvartal; rekalibrer swap mot live Skilling-tabell; opt-ins forblir AV (ingen OOS-lift).**
+**Sist oppdatert:** 2026-06-16 (fordeling-først UI + walk-forward-validering + data-kvalitetsflagg)
+**Nåværende fase:** MVP live, **fordeling-først produkt**. **Neste: bekreft EXP-1 forward-kvartal; rekalibrer swap mot live Skilling; vurder intraday-produkt (egen beslutning).**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
 ---
@@ -147,6 +147,21 @@ den som ble publisert. Fire avgrensede korrekthetsfikser (alle med tester, 61 gr
 - **#8 retning ved ~0:** sign(score) ved score≈0 er støy, MEN allerede dekket av grade-gaten
   (|score|<B ⇒ NONE ⇒ forkastet), og en aggressiv panel-filtrering ville sultet n≥30. Lav verdi,
   utelatt med vilje.
+
+### Fordeling-først + walk-forward + data-flagg (2026-06-16)
+- **#1 fordeling-først:** UI-et (`web/index.html`) leder nå med den **kalibrerte forward-fordelingen**
+  (validert), ikke retning. Hver setup bærer `scenario.cone` (p05–p95 kvantil-kjegle av forward-pris)
+  + P(T1 før SL) + expectancy-CI; retning/grade/analog-gate er demotert til sekundær diagnostikk.
+  `generator._scenario_rate` legger til `cone` + `horizon`; `publish` eksponerer dem.
+- **#2 walk-forward:** `validate.walk_forward` (expanding window, fortegns-treff pr år) +
+  `python -m setups.validate --walk-forward`. Robust OOS-bevis i stedet for ett vilkårlig 2024-snitt;
+  riktig måte å bekrefte eksperimenter (EXP-1) uten p-hacking.
+- **#3 data-kvalitetsflagg:** `Setup.data_quality` ("ok"/"kort_historikk") + `history_years` fra
+  Skilling-prisdybde (<7 år → flagg). Korn/softs/kobber merkes ærlig i UI i stedet for å skjules.
+- **Data-/produktbeslutning (jeg tok den):** **droppet WGC sentralbank-gull-fetch.** Serien er
+  kvartalsvis (~4 pkt/år) → kan ikke være en meningsfull daglig driver (ville lagt til støy, brutt
+  egen «valider før du stoler»-regel). Gulls validerte drivere (realrente + ETF-flyt) er alt godt
+  matet. Bred datainnsamling frarådes; ekstra edge ligger trolig på intraday (eget produkt, utsatt).
 
 ## HOVEDFUNN (ikke gjenta feilene)
 - **Fundamentale lineære scorer forutsier IKKE forward-avkastning** på 30–120d (kalibrering flat/invertert,

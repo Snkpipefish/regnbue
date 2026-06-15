@@ -111,6 +111,51 @@ def validate(panel: Panel, *, band: float, min_effective_n: int,
     )
 
 
+@dataclass
+class Fold:
+    fold: str             # f.eks. "2024"
+    n_train: int
+    n_test: int
+    n_predicted: int
+    sign_agreement: float
+    exp_when_pred_bull: float
+
+
+def _yearly_cuts(dates: list[str]) -> list[str]:
+    """Årsgrenser som spenner panelets datoer (expanding-window walk-forward)."""
+    if not dates:
+        return []
+    y0, y1 = int(min(dates)[:4]), int(max(dates)[:4])
+    return [f"{y}-01-01" for y in range(y0 + 1, y1 + 2)]
+
+
+def walk_forward(panel: Panel, *, band: float, min_effective_n: int,
+                 cuts: list[str] | None = None) -> list[Fold]:
+    """Expanding-window walk-forward: for hvert år, tren på ALT før året, test PÅ året.
+
+    Gir robust OOS-bevis i stedet for ett vilkårlig train/test-snitt — predikér hver test-dato
+    fra train-naboer (samme likhets-/retnings-regel som gaten) og mål fortegns-treff pr fold.
+    """
+    rows = sorted(panel.rows, key=lambda r: r.date)
+    cuts = cuts or _yearly_cuts([r.date for r in rows])
+    out: list[Fold] = []
+    for i in range(len(cuts) - 1):
+        lo, hi = cuts[i], cuts[i + 1]
+        train = [r for r in rows if r.date < lo]
+        test = [r for r in rows if lo <= r.date < hi]
+        if not train or not test:
+            continue
+        pairs = []
+        for row in test:
+            nb = gate.neighbors_by_score(train, row.score, row.direction, band)
+            if len(nb) >= min_effective_n:
+                pairs.append((_mean([n.outcome_r for n in nb]), row.outcome_r))
+        agree = _mean([1.0 if (p > 0) == (a > 0) else 0.0 for p, a in pairs])
+        bull = _mean([a for p, a in pairs if p > 0])
+        out.append(Fold(lo[:4], len(train), len(test), len(pairs), agree, bull))
+    return out
+
+
 def _all_fingerprints() -> list[str]:
     from setups.score.engine import FINGERPRINT_DIR
     return sorted(p.stem for p in FINGERPRINT_DIR.glob("*.yaml"))
@@ -152,12 +197,36 @@ def run(db_path=store.DEFAULT_DB_PATH, fingerprints=None, oos_start="2024-01-01"
     return out
 
 
+def run_walk_forward(db_path=store.DEFAULT_DB_PATH, fingerprints=None, step: int = 5) -> None:
+    """Walk-forward pr instrument: fortegns-treff pr år (expanding window). Robust OOS-bevis."""
+    fingerprints = fingerprints or _all_fingerprints()
+    with store.connect(db_path) as conn:
+        for name in fingerprints:
+            fp = load_fingerprint(name)
+            br = fp.get("base_rate", {})
+            panel = build_panel(conn, fp, horizon=br.get("horizon_days", 30), step=step)
+            folds = walk_forward(panel, band=br.get("band", 0.1),
+                                 min_effective_n=br.get("min_effective_n", 30))
+            if not folds:
+                print(f"{name:10s} (for tynt panel for walk-forward)", flush=True)
+                continue
+            cells = "  ".join(f"{f.fold}:{f.sign_agreement*100:3.0f}%(n{f.n_predicted})"
+                              for f in folds)
+            mean = _mean([f.sign_agreement for f in folds if f.n_predicted])
+            print(f"{name:10s} snitt-sign {mean*100:3.0f}%  |  {cells}", flush=True)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="OOS-validering av base-rate-gaten.")
     ap.add_argument("--db", default=str(store.DEFAULT_DB_PATH))
     ap.add_argument("--oos-start", default="2024-01-01")
+    ap.add_argument("--walk-forward", action="store_true",
+                    help="expanding-window walk-forward (fortegns-treff pr år)")
     args = ap.parse_args()
-    run(db_path=args.db, oos_start=args.oos_start, verbose=True)
+    if args.walk_forward:
+        run_walk_forward(db_path=args.db)
+    else:
+        run(db_path=args.db, oos_start=args.oos_start, verbose=True)
 
 
 if __name__ == "__main__":

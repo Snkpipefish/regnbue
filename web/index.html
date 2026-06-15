@@ -53,6 +53,25 @@
   .chip.na { opacity: .5; }
   .reason { color: var(--muted); font-size: 13px; margin-top: 10px; }
   .empty { color: var(--muted); padding: 18px 0; }
+  /* fordeling-først (kalibrert scenario) */
+  .dist { margin: 14px 0 4px; padding: 13px 14px; background: var(--card2);
+          border: 1px solid var(--line); border-radius: 12px; }
+  .dist .h { font-size: 11px; text-transform: uppercase; letter-spacing: .11em; color: var(--muted); }
+  .dist .row2 { display: flex; align-items: baseline; gap: 8px; margin-top: 7px; flex-wrap: wrap; }
+  .dist .big { font-size: 21px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .dist .lbl { color: var(--muted); font-size: 12px; }
+  .cone { margin-top: 13px; }
+  .cone .track { position: relative; height: 10px; background: var(--card);
+                 border-radius: 6px; border: 1px solid var(--line); }
+  .cone .whisker { position: absolute; top: 4px; height: 2px; background: var(--muted); }
+  .cone .iqr { position: absolute; top: 1px; height: 8px; border-radius: 4px; opacity: .55;
+               background: linear-gradient(90deg,#5ee07a,#4dd0e1); }
+  .cone .med { position: absolute; top: -2px; width: 2px; height: 14px; background: var(--txt); }
+  .cone .entry { position: absolute; top: -3px; width: 2px; height: 16px; background: #ffe14d; }
+  .cone .lab { display: flex; justify-content: space-between; color: var(--muted);
+               font-size: 11px; margin-top: 7px; font-variant-numeric: tabular-nums; }
+  .dq { font-size: 11px; padding: 2px 9px; border-radius: 999px; background: rgba(255,225,77,.1);
+        color: #ffe14d; border: 1px solid rgba(255,225,77,.3); }
   /* modal */
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none;
              align-items: center; justify-content: center; padding: 18px; }
@@ -77,9 +96,12 @@
   <div class="sub" id="meta">laster …</div>
 </header>
 <main>
-  <h2>Publiserte setups</h2>
+  <p class="sub" style="margin:0 0 6px">Hovedmålet er den <b>kalibrerte forward-fordelingen</b>
+    (validert) — ikke en retning. Retning/grade og base-rate-gaten er sekundær diagnostikk;
+    gaten publiserer bevisst ~0 når historikken ikke støtter en R:R.</p>
+  <h2>Gate-godkjente</h2>
   <div id="published"></div>
-  <h2>Forkastede (med grunn)</h2>
+  <h2>Øvrige (fordeling vist, gate ikke passert)</h2>
   <div id="rejected"></div>
 </main>
 <div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
@@ -123,13 +145,47 @@ function baseRateBadge(br, published) {
     ${(br.expectancy_r>=0?"+":"")}${br.expectancy_r.toFixed(2)}R</div>`;
 }
 
+// Fordeling-først: den kalibrerte forward-fordelingen (validert) er hovedmålet — P(T1 før SL),
+// forventet R med CI, og en kvantil-kjegle (p05–p95) av forward-pris. Retning/grade er sekundær.
+function scenarioBlock(s) {
+  const sc = s.scenario;
+  if (!sc) return "";
+  const exp = sc.expectancy_r, ci = sc.expectancy_ci || [exp, exp], hz = sc.horizon || 30;
+  let cone = "";
+  if (sc.cone && s.entry > 0) {
+    const c = sc.cone, e = s.entry, lo = e * (1 + c.p05), hi = e * (1 + c.p95);
+    const span = (hi - lo) || 1;
+    const at = (q) => Math.max(0, Math.min(100, (e * (1 + q) - lo) / span * 100));
+    cone = `<div class="cone"><div class="track">
+      <div class="whisker" style="left:${at(c.p05)}%;right:${100 - at(c.p95)}%"></div>
+      <div class="iqr" style="left:${at(c.p25)}%;right:${100 - at(c.p75)}%"></div>
+      <div class="med" style="left:${at(c.median)}%"></div>
+      <div class="entry" style="left:${at(0)}%" title="entry"></div></div>
+      <div class="lab"><span>${fmt(lo)}</span><span>median ${fmt(e * (1 + c.median))}</span>
+      <span>${fmt(hi)}</span></div></div>`;
+  }
+  return `<div class="dist">
+    <div class="h">Kalibrert forward-fordeling · ${hz}d</div>
+    <div class="row2">
+      <span class="big">${pct(sc.prob_tp)}</span><span class="lbl">når T1 før SL</span>
+      <span class="spacer"></span>
+      <span class="big ${exp >= 0 ? "pos" : "neg"}">${exp >= 0 ? "+" : ""}${exp.toFixed(2)}R</span>
+      <span class="lbl">forventet [${ci[0].toFixed(2)}, ${ci[1].toFixed(2)}]</span>
+    </div>${cone}
+  </div>`;
+}
+
 function card(s) {
   const lv = (k, v) => `<div class="lv"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+  const dq = s.data_quality === "kort_historikk"
+    ? `<span class="dq" title="Skilling-historikk ${s.history_years} år — for kort til ærlig base-rate">⚠ kort historikk ${s.history_years}å</span>`
+    : "";
   return `<div class="card ${s.published ? "" : "rejected"}">
     <div class="row">
       <span class="inst">${s.instrument}</span>
       <span class="dir ${s.direction}">${s.direction}</span>
-      <span class="grade ${s.grade}">${s.grade === "NONE" ? "—" : s.grade}</span>
+      <span class="grade ${s.grade}" title="retning/grade er sekundær diagnostikk">${s.grade === "NONE" ? "—" : s.grade}</span>
+      ${dq}
       <span class="spacer"></span>
       <span class="sub">${s.ticker} · score ${s.score.toFixed(3)}</span>
     </div>
@@ -137,6 +193,7 @@ function card(s) {
       ${lv("Entry", fmt(s.entry))}${lv("SL", fmt(s.sl))}
       ${lv("T1", fmt(s.tp))}${lv("R:R", s.rr.toFixed(2))}
     </div>
+    ${scenarioBlock(s)}
     ${baseRateBadge(s.base_rate, s.published)}
     <div class="chips">${s.drivers.map(chip).join("")}</div>
     ${s.published ? "" : `<div class="reason">⛔ ${s.reject_reason}</div>`}
@@ -173,7 +230,7 @@ fetch("data/setups.json?_=" + Date.now())
     const pub = d.signals.filter(s => s.published);
     const rej = d.signals.filter(s => !s.published);
     document.getElementById("published").innerHTML =
-      pub.length ? pub.map(card).join("") : `<div class="empty">Ingen setups passerte base-rate-gaten i dag.</div>`;
+      pub.length ? pub.map(card).join("") : `<div class="empty">Ingen passerte base-rate-gaten i dag — det er normalt. Les fordelingen under.</div>`;
     document.getElementById("rejected").innerHTML =
       rej.length ? rej.map(card).join("") : `<div class="empty">Ingen.</div>`;
     bindChips();

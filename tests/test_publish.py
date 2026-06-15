@@ -41,7 +41,8 @@ def test_payload_shape_and_ordering():
 
     sig = payload["signals"][0]
     for key in ("instrument", "ticker", "direction", "grade", "score", "published",
-                "entry", "sl", "tp", "rr", "atr", "base_rate", "drivers", "reject_reason"):
+                "entry", "sl", "tp", "rr", "atr", "base_rate", "scenario", "data_quality",
+                "history_years", "drivers", "reject_reason"):
         assert key in sig
     assert sig["base_rate"]["n"] == 35
     assert sig["base_rate"]["hit_rate_ci"] == [0.55, 0.74]

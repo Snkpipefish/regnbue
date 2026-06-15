@@ -42,6 +42,10 @@ class Setup:
     # Forward, sti-avhengig base-rate fra den kalibrerte scenario-fordelingen (#12). Vises
     # ved siden av den historiske analog-base-raten; gater ikke med mindre fingerprintet ber.
     scenario: dict | None = None
+    # Data-kvalitet (#3): "ok" eller "kort_historikk" — ærlig flagg når Skilling-prisdybden er
+    # for tynn til at base-raten kan valideres (korn/softs/kobber ~5 år). Bærer antall år.
+    data_quality: str = "ok"
+    history_years: float = 0.0
 
 
 def _fractal_levels(highs, lows, lo_idx, hi_idx, wing: int = 3):
@@ -70,7 +74,7 @@ def _scenario_rate(closes: list[float], direction: str, entry: float, risk: floa
     try:
         import numpy as np
 
-        from setups.scenario import fhs_barrier_prob, log_returns
+        from setups.scenario import fhs_barrier_prob, fhs_scenario, log_returns
         rets = log_returns(np.asarray(closes, dtype=float))
         rets = rets[np.isfinite(rets)]
         if len(rets) < 60:
@@ -78,7 +82,13 @@ def _scenario_rate(closes: list[float], direction: str, entry: float, risk: floa
         bp = fhs_barrier_prob(rets, len(rets) - 1, direction=direction,
                               tp_ret=reward / entry, sl_ret=risk / entry,
                               horizon=horizon, n_paths=n_paths, swap=swap)
-        return bp.summary()
+        out = bp.summary()
+        out["horizon"] = horizon
+        # Fordeling-først (#1): kvantil-kjegle av forward-avkastning (kalibrert FHS), så UI-et
+        # kan lede med fordelingen i stedet for en retning systemet ikke pålitelig forutsier.
+        sc = fhs_scenario(rets, len(rets) - 1, horizon=horizon, n_paths=n_paths).summary()
+        out["cone"] = {k: sc[k] for k in ("p05", "p25", "median", "p75", "p95", "prob_up")}
+        return out
     except Exception:
         return None
 
@@ -190,6 +200,12 @@ def build_setup(conn: sqlite3.Connection, fingerprint: dict, as_of: str, *,
     scenario = _scenario_rate(bars.closes[:hi_idx], direction, entry, risk, reward, horizon,
                               swap=fingerprint.get("swap"))
 
+    # Data-kvalitet (#3): Skilling-historikkens lengde t.o.m. as_of. Under ~7 år er base-raten
+    # for tynn til ærlig validering (korn/softs/kobber) — flagg det i stedet for å skjule det.
+    from datetime import date as _date
+    history_years = (_date.fromisoformat(as_of) - _date.fromisoformat(bars.dates[0])).days / 365.25
+    data_quality = "ok" if history_years >= 7.0 else "kort_historikk"
+
     reasons = []
     if res.grade.grade == "NONE":
         reasons.append("ingen grade (for svakt signal)")
@@ -221,4 +237,5 @@ def build_setup(conn: sqlite3.Connection, fingerprint: dict, as_of: str, *,
         entry=round(entry, 6), sl=round(sl, 6), tp=round(tp, 6), rr=round(rr, 3),
         atr=round(atr, 6), base_rate=base_rate, published=published,
         reject_reason="; ".join(reasons), drivers=drivers, scenario=scenario,
+        data_quality=data_quality, history_years=round(history_years, 1),
     )

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from setups.outcomes import Panel, PanelRow
-from setups.validate import _driver_ic, validate
+from setups.validate import _driver_ic, validate, walk_forward
 
 
 def _row(date, score, direction, r, oos):
@@ -44,3 +44,18 @@ def test_driver_ic_separates_signal_from_noise():
     ic = _driver_ic(rows)
     assert ic["good"][0] > 0.95 and ic["good"][1] == 40   # sterk forward-IC
     assert ic["flat"][0] == 0.0                           # konstant → null varians → IC 0
+
+
+def test_walk_forward_expanding_yearly_folds():
+    # Tre år med konsistent vinner-state → expanding-window walk-forward gir 2023 + 2024 som
+    # test-folder (2022 finnes bare som train), begge med perfekt fortegns-treff.
+    rows = []
+    for y in (2022, 2023, 2024):
+        for i in range(40):
+            rows.append(PanelRow(date=f"{y}-{(i % 12) + 1:02d}-15", vector={"d": 0.5},
+                                 direction="LONG", outcome_r=2.0, hit=True, score=0.5))
+    folds = walk_forward(Panel("X", rows), band=0.1, min_effective_n=30)
+    years = [f.fold for f in folds]
+    assert years == ["2023", "2024"]
+    f24 = next(f for f in folds if f.fold == "2024")
+    assert f24.n_train == 80 and f24.n_predicted == 40 and f24.sign_agreement == 1.0
