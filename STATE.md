@@ -2,8 +2,8 @@
 
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
-**Sist oppdatert:** 2026-06-15 (HELE audit-slaten: #1/#2/#3/#5/#6/#7/#9/#10/#12/#13 + swap-data fylt)
-**Nåværende fase:** MVP live + scenario-generator bygget. **Neste: OOS-valider opt-ins (`engine: scenario`, `match_coverage`, `aggregation: agreement`) + rekalibrer swap mot live Skilling-tabell.**
+**Sist oppdatert:** 2026-06-16 (OOS-validert hele universet + EXP-1 COT-ablasjon avkreftet → behold COT)
+**Nåværende fase:** MVP live + scenario-generator bygget. **Neste: bekreft EXP-1 på neste forward-kvartal; rekalibrer swap mot live Skilling-tabell; opt-ins forblir AV (ingen OOS-lift).**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
 ---
@@ -154,6 +154,22 @@ den som ble publisert. Fire avgrensede korrekthetsfikser (alle med tester, 61 gr
 - **IKKE pirk på terskler/likhet for å tvinge publisering** (= p-hacking på OOS).
 - Det som er reelt: (a) **trendfølging** diversifisert (~0.65 Sharpe brutto, in-sample) — men per instrument er det støy;
   (b) **scenario-generatoren** (kalibrert fordeling), ikke retnings-orakel.
+
+### OOS-validering hele universet (2026-06-15, oos_start 2024-01-01, step=5)
+Kjørt via `/tmp/oos_check.py`-mønster (= `validate.run` + agreement-variant). Funn:
+- **Gaten publiserer 0 for alle 22** (begge konfigurasjoner) — låste n_eff/CI-krav møtes aldri. Ærlig taushet.
+- **Gull er eneste koherente case:** sign-agreement 65 %, exp|pred+ +0.99R, forklart av driver-IC
+  (realrente `series_spread_percentile` +0.36, `etf_flow` +0.33). Selv her under n_eff/CI-baren.
+- **Indeks (sp500/nasdaq) under 50 %** sign-agreement — makro-regime forutsier ikke indeks OOS.
+- **COT (`cot_spec_net_percentile`) er svakeste driver:** IC sprikende/kontrær (gull −0.10, wti −0.13,
+  corn −0.12, men sp500 +0.20, usdjpy +0.19). Klart nedvektings-/fjernings-kandidat → se `EXPERIMENTS.md`.
+- **`momentum` ≈ støy** (IC ±0.1 nesten overalt). Bærere: realrente, etf_flow, seasonal_anomaly (energi).
+- **#9 agreement-aggregering gir INGEN systematisk OOS-lift** (vaskebrett: hjelper noen, skader andre)
+  → ikke skru på globalt. Korn/softs/kobber kan ikke valideres (Skilling-pris ~5 år → tom train-pool).
+- **EXP-1 (COT-ablasjon, `EXPERIMENTS.md`): lav marginal-IC ⇒ IKKE trygt å fjerne.** Å fjerne COT
+  skader ekte-historikk-instrumenter (audusd −19pp, wti −15pp, gull −10pp sign-agreement). COT
+  bidrar i ensemblet selv med svak egen-IC. **Behold COT.** Ablasjon > marginal-IC for å vurdere
+  drivere. Verktøy: `scripts/driver_ablation.py` (rører ikke produksjonsfiler).
 
 ## Scenario-generator (bygget 2026-05-31)
 - `scenario.py` — FHS (EWMA-vol + standardiserte residualer + stationary block bootstrap) → betinget
