@@ -19,7 +19,7 @@ from setups.score.drivers import (
     seasonal_anomaly,
     series_spread_percentile,
 )
-from setups.score.engine import score_instrument
+from setups.score.engine import _aggregate, score_instrument
 from setups.score.grade import grade_score
 
 
@@ -349,6 +349,20 @@ def test_engine_renormalizes_when_driver_missing(conn):
     # Samlet score = price-driverens score (re-normalisert), ikke uthulet av manglende cot.
     price_res = next(d for d in res.drivers if d.name == "price_vs_sma")
     assert res.score == pytest.approx(price_res.score, abs=1e-6)
+
+
+def test_aggregate_agreement_dampens_disagreement():
+    # Enstemmig (begge +0.6, vekt 0.5): enighet=1 → identisk med lineær.
+    assert _aggregate(0.6, 1.0, 0.6, {}) == pytest.approx(0.6)
+    assert _aggregate(0.6, 1.0, 0.6, {"method": "agreement"}) == pytest.approx(0.6)
+    # Uenighet (+0.6 og −0.3, vekt 0.5): lineær snitt 0.15, men drivere kansellerer →
+    # enighet=0.15/0.45=0.33 → dempet kraftig.
+    lin = _aggregate(0.15, 1.0, 0.45, {})
+    agr = _aggregate(0.15, 1.0, 0.45, {"method": "agreement"})
+    assert lin == pytest.approx(0.15)
+    assert 0 < abs(agr) < abs(lin)
+    # gamma=0 inneholder lineær som spesialtilfelle.
+    assert _aggregate(0.15, 1.0, 0.45, {"method": "agreement", "gamma": 0}) == pytest.approx(0.15)
 
 
 def test_grade_thresholds():

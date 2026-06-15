@@ -2,8 +2,8 @@
 
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
-**Sist oppdatert:** 2026-06-15 (audit-fikser #1/#2/#3/#5 + #7 coverage-match + #10 swap + #12 scenario-base-rate + #13 driver-IC)
-**Nåværende fase:** MVP live + scenario-generator bygget. **Neste: OOS-valider opt-ins (`engine: scenario`, `match_coverage`) + fyll `swap`-rater pr instrument før de slås på.**
+**Sist oppdatert:** 2026-06-15 (HELE audit-slaten: #1/#2/#3/#5/#6/#7/#9/#10/#12/#13 + swap-data fylt)
+**Nåværende fase:** MVP live + scenario-generator bygget. **Neste: OOS-valider opt-ins (`engine: scenario`, `match_coverage`, `aggregation: agreement`) + rekalibrer swap mot live Skilling-tabell.**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
 ---
@@ -130,10 +130,23 @@ den som ble publisert. Fire avgrensede korrekthetsfikser (alle med tester, 61 gr
   (positiv = debet, negativ = kreditt). Mangler ennå reell swap-rate-kilde wiret → må fylles
   pr instrument (negativ-swap-instrumenter flagges, PLAN §5b). Av som standard (ingen swap-nøkkel).
 
-### Gjenstående forslag fra auditen (ikke gjort — bevisst utsatt)
-- **#9 ikke-lineær aggregering:** lineær additiv sum av ikke-monotone + monotone drivere til én
-  skalar visker ut struktur. Spekulativt modell-redesign; prosjektets eget hovedfunn tilsier
-  forsiktighet → egen beslutning før noe bygges.
+### #9 + #6 + swap-data (2026-06-15) — bygget
+- **#9 ikke-lineær aggregering:** `engine._aggregate` med `aggregation.method: agreement` —
+  skalerer det lineære snittet med driver-ENIGHET (|Σ w·s|/Σ w·|s|)^gamma, så signaler der
+  drivere kansellerer dempes. **Opt-in** (standard `linear`); gamma=0 ⇒ identisk lineær. Lærer
+  ingenting fra utfall (ingen overtilpasning) — øker presisjon, fabrikkerer ikke edge.
+- **#6 swing-prioriterte nivåer:** `_nearest_level` velger ekte swing-nivå før runde tall (det
+  tette ~1%-rutenettet snappet nesten alltid TP/SL til et rundt tall). Alltid på (nivå-kvalitet,
+  ikke terskel). Effekt: usdjpy rr 0.81→3.04 (TP lenger ut på faktisk struktur).
+- **#10 swap-data fylt:** `config/swap_rates.yaml` (carry-forankrede estimater, web-research
+  2026-06: Skilling-formel + sentralbankrenter USD4.5/EUR2.5/GBP4.5/JPY0.5/AUD4.1) flettes inn
+  i `load_fingerprint` på filstamme. **Nå PÅ for alle 22.** Tegn/størrelsesorden riktige;
+  rekalibrer mot live Skilling-tabell. NB long USDJPY = kreditt (positiv carry), krypto ~−20%/år.
+
+### Gjenstående (bevisst ikke gjort)
+- **#8 retning ved ~0:** sign(score) ved score≈0 er støy, MEN allerede dekket av grade-gaten
+  (|score|<B ⇒ NONE ⇒ forkastet), og en aggressiv panel-filtrering ville sultet n≥30. Lav verdi,
+  utelatt med vilje.
 
 ## HOVEDFUNN (ikke gjenta feilene)
 - **Fundamentale lineære scorer forutsier IKKE forward-avkastning** på 30–120d (kalibrering flat/invertert,

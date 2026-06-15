@@ -83,6 +83,20 @@ def _scenario_rate(closes: list[float], direction: str, entry: float, risk: floa
         return None
 
 
+def _nearest_level(swings: list[float], rounds: list[float], *, above: bool,
+                   ref: float) -> float | None:
+    """Nærmeste nivå på riktig side av `ref`: ekte swing prioriteres, runde tall er fallback.
+
+    Det tette ~1%-runde-rutenettet ville ellers nesten alltid vinne over faktisk swing-
+    struktur (#6). Returnerer None hvis ingen nivå finnes på den siden.
+    """
+    cand = [lv for lv in swings if (lv > ref if above else lv < ref)]
+    if cand:
+        return min(cand) if above else max(cand)
+    cand = [lv for lv in rounds if (lv > ref if above else lv < ref)]
+    return (min(cand) if above else max(cand)) if cand else None
+
+
 def _round_levels(price: float, n: int = 3) -> list[float]:
     """Nærliggende runde tall (psykologiske nivåer), skalert til prisstørrelsen."""
     import math
@@ -127,19 +141,20 @@ def build_setup(conn: sqlite3.Connection, fingerprint: dict, as_of: str, *,
     sh, sl_levels = _fractal_levels(bars.highs, bars.lows, lo_idx, hi_idx)
     rounds = _round_levels(entry)
 
+    # #6: prioritér ekte swing-nivåer; runde tall kun som fallback (se `_nearest_level`).
     min_sl = sl_floor_atr * atr
     if direction == "LONG":
-        ups = [lv for lv in sh + rounds if lv > entry + 0.3 * atr]
-        downs = [lv for lv in sl_levels + rounds if lv < entry]
-        tp = min(ups) if ups else entry + tp_atr * atr
-        sl = (max(downs) - sl_buffer_atr * atr) if downs else entry - sl_atr * atr
+        tp = _nearest_level(sh, rounds, above=True, ref=entry + 0.3 * atr)
+        tp = tp if tp is not None else entry + tp_atr * atr
+        base_sl = _nearest_level(sl_levels, rounds, above=False, ref=entry)
+        sl = (base_sl - sl_buffer_atr * atr) if base_sl is not None else entry - sl_atr * atr
         sl = min(sl, entry - min_sl)  # håndhev minste SL-avstand
         risk, reward = entry - sl, tp - entry
     else:
-        downs = [lv for lv in sl_levels + rounds if lv < entry - 0.3 * atr]
-        ups = [lv for lv in sh + rounds if lv > entry]
-        tp = max(downs) if downs else entry - tp_atr * atr
-        sl = (min(ups) + sl_buffer_atr * atr) if ups else entry + sl_atr * atr
+        tp = _nearest_level(sl_levels, rounds, above=False, ref=entry - 0.3 * atr)
+        tp = tp if tp is not None else entry - tp_atr * atr
+        base_sl = _nearest_level(sh, rounds, above=True, ref=entry)
+        sl = (base_sl + sl_buffer_atr * atr) if base_sl is not None else entry + sl_atr * atr
         sl = max(sl, entry + min_sl)  # håndhev minste SL-avstand
         risk, reward = sl - entry, entry - tp
 

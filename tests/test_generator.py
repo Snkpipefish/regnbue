@@ -7,8 +7,28 @@ from datetime import date, timedelta
 import pytest
 
 from setups import store
-from setups.generator import build_setup
+from setups.generator import _nearest_level, build_setup
 from setups.outcomes import build_scored_panel, swap_cost_r
+from setups.score.engine import load_fingerprint
+
+
+def test_load_fingerprint_merges_swap_rates():
+    # Sentral swap-tabell flettes inn på filstamme (#10).
+    gold = load_fingerprint("gold")
+    assert gold["swap"]["long_cost_pct_per_day"] > 0          # gull-long er debet
+    usdjpy = load_fingerprint("usdjpy")
+    assert usdjpy["swap"]["long_cost_pct_per_day"] < 0        # long USDJPY = positiv carry
+
+
+def test_nearest_level_prefers_swing_over_round():
+    # Swing finnes på riktig side → velges selv om et rundt tall ligger nærmere.
+    swings = [105.0, 112.0]
+    rounds = [101.0, 102.0, 103.0]  # tettere på entry=100, men kun fallback
+    assert _nearest_level(swings, rounds, above=True, ref=100.0) == 105.0
+    # Ingen swing over → fall tilbake til nærmeste runde tall.
+    assert _nearest_level([], rounds, above=True, ref=100.0) == 101.0
+    # Ingen nivå på siden → None.
+    assert _nearest_level([90.0], [], above=True, ref=100.0) is None
 
 
 def _days(n: int, start="2022-01-01") -> list[str]:

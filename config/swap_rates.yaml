@@ -1,0 +1,53 @@
+# Swap / overnight-financing-rater pr instrument (#10) — daglig kostnad som ANDEL av notional.
+#   long_cost_pct_per_day / short_cost_pct_per_day:  POSITIV = debet (du betaler),
+#   NEGATIV = kreditt (du mottar). Trekkes fra expectancy pr faktisk holdetid i
+#   outcomes.swap_cost_r + scenario.fhs_barrier_prob. Nøklet på fingerprint-navn (filstamme),
+#   fordi brent/wti deler Skilling-ticker OIL.
+#
+# KILDE/METODE (research 2026-06, web): Skilling beregner swap fra underliggende carry —
+#   FX = rentedifferanse mellom valutaene; indeks = (markup ± Libor)/365 minus utbytte;
+#   krypto ≈ −20 %/år begge veier; metaller/energi = USD-finansiering + markup (+ contango).
+#   Vi rekonstruerer dette fra carry framfor et skjørt plattform-øyeblikksbilde:
+#     markup ≈ 2.5 %/år (retail CFD) ⇒ markup_daily = 0.025/365 ≈ 6.85e-5, begge sider.
+#   Sentralbankrenter (UniRateAPI, ~apr-2026): USD 4.50, EUR 2.50, GBP 4.50, JPY 0.50, AUD 4.10.
+#     FX:  carry_long = (base−quote)/365;  long = markup_daily − carry_long;  short = markup_daily + carry_long.
+#   Kilder: skilling.com/eu/en/commissions-and-swap-charges, brokerchooser.com Skilling-review,
+#   unirateapi.com/central-bank-rates, activtrades/bydfi swap-forklaringer.
+#
+# NB: Dette er carry-forankrede ESTIMATER, ikke Skillings eksakte live-tabell (som ligger i
+#   plattformen). Rekalibrer pr instrument mot kontoen; flagg negativ-swap-instrumenter (§5b).
+#   Tegn/størrelsesorden er korrekte; finjuster verdiene når live-tall hentes.
+
+# --- FX (rentedifferanse) ---
+eurusd:   {long_cost_pct_per_day: 0.000123,  short_cost_pct_per_day: 0.000014}
+gbpusd:   {long_cost_pct_per_day: 0.0000685, short_cost_pct_per_day: 0.0000685}
+usdjpy:   {long_cost_pct_per_day: -0.0000411, short_cost_pct_per_day: 0.000178}   # long USDJPY = positiv carry
+audusd:   {long_cost_pct_per_day: 0.0000795, short_cost_pct_per_day: 0.0000575}
+
+# --- metaller (USD-finansiering + markup; platina dyr å holde, §5b) ---
+gold:     {long_cost_pct_per_day: 0.00019,   short_cost_pct_per_day: 0.00002}
+silver:   {long_cost_pct_per_day: 0.00019,   short_cost_pct_per_day: 0.00002}
+platinum: {long_cost_pct_per_day: 0.00021,   short_cost_pct_per_day: 0.00004}
+copper:   {long_cost_pct_per_day: 0.00018,   short_cost_pct_per_day: 0.00006}
+
+# --- indeks (finansiering + markup − utbytte; short kan gi liten kreditt) ---
+sp500:    {long_cost_pct_per_day: 0.000156,  short_cost_pct_per_day: -0.000019}
+nasdaq:   {long_cost_pct_per_day: 0.000173,  short_cost_pct_per_day: -0.0000356}
+
+# --- energi (finansiering + contango; trippel fredag) ---
+wti:      {long_cost_pct_per_day: 0.0002,    short_cost_pct_per_day: 0.00008}
+brent:    {long_cost_pct_per_day: 0.0002,    short_cost_pct_per_day: 0.00008}
+natgas:   {long_cost_pct_per_day: 0.0003,    short_cost_pct_per_day: 0.0001}      # bratt contango
+
+# --- krypto (~−20 %/år begge veier) ---
+btcusd:   {long_cost_pct_per_day: 0.00055,   short_cost_pct_per_day: 0.00055}
+ethusd:   {long_cost_pct_per_day: 0.0006,    short_cost_pct_per_day: 0.0006}
+
+# --- softs + korn (commodity-CFD-finansiering, begge debet, moderat) ---
+sugar:    {long_cost_pct_per_day: 0.00015,   short_cost_pct_per_day: 0.00008}
+coffee:   {long_cost_pct_per_day: 0.00015,   short_cost_pct_per_day: 0.00008}
+cocoa:    {long_cost_pct_per_day: 0.00015,   short_cost_pct_per_day: 0.00008}
+cotton:   {long_cost_pct_per_day: 0.00015,   short_cost_pct_per_day: 0.00008}
+corn:     {long_cost_pct_per_day: 0.00015,   short_cost_pct_per_day: 0.00008}
+soybean:  {long_cost_pct_per_day: 0.00015,   short_cost_pct_per_day: 0.00008}
+wheat:    {long_cost_pct_per_day: 0.00015,   short_cost_pct_per_day: 0.00008}
