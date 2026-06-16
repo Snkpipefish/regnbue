@@ -2,8 +2,8 @@
 
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
-**Sist oppdatert:** 2026-06-16 (SqueezeMetrics SPX DIX/GEX hentet + validert — ingen 30d-edge, ikke vektet)
-**Nåværende fase:** MVP live, **fordeling-først produkt**. **Neste: GEX som vol-regime (SL/TP, ikke retning); bekreft EXP-1 forward-kvartal; rekalibrer swap; intraday er den gjenstående reelle edge-typen.**
+**Sist oppdatert:** 2026-06-16 (intraday H1 testet — reversal dør i spread; EXP-2 avkreftet)
+**Nåværende fase:** MVP live, **fordeling-først produkt**. **Neste: GEX som vol-regime (SL/TP); bekreft EXP-1 forward-kvartal; rekalibrer swap. Alle retnings-edge-spor testet og avkreftet → fordelingen ER produktet.**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
 ---
@@ -220,6 +220,16 @@ Kjørt via `/tmp/oos_check.py`-mønster (= `validate.run` + agreement-variant). 
   gatens 55 %-bar. Ett snitt overstiger edge; **walk-forward er den ærlige testen.** FX carry-pairene
   (audusd/gbpusd/usdjpy) klynger svakt >50 % — hypotese for framtidig forhåndsregistrert test, ikke
   handle på nå. Bekrefter: ingen fundamental retnings-edge på 30–120d holder OOS → fordeling-først.
+
+### Intraday testet (EXP-2, 2026-06-16) — reversal dør i spread
+- `ctrader_prices.py` generalisert til vilkårlig periode (`--period H1 --chunk-days 30`). H1-dybde:
+  ~1.6 år (cTrader-cap). Gull H1 9249 barer.
+- **Forhåndsregistrert test (`EXPERIMENTS.md` EXP-2):** timesbasert reversal, parameter-fri (hver
+  måned OOS), NETTO etter spread. Lag-1 autokorr −0.0137 (reversal finnes), men **netto −0.53 bps/bar,
+  7/21 måneder positive → AVKREFTET.** Effekten er mindre enn spreaden → ikke tradbar.
+- **Sluttsats:** alle retnings-edge-spor er nå testet og avkreftet OOS — fundamental (30–120d),
+  SPX-flyt (DIX), intraday H1-reversal. Mønsteret er konsistent: edge < kostnad/støy. **Den ærlige
+  konklusjonen står: fordeling-først er produktet; gatens taushet er korrekt.**
 
 ## Scenario-generator (bygget 2026-05-31)
 - `scenario.py` — FHS (EWMA-vol + standardiserte residualer + stationary block bootstrap) → betinget

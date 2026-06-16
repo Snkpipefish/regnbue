@@ -68,6 +68,28 @@ i ensemblet) er mer informativ enn enkelt-driver-IC. Ikke fjern drivere på IC a
 
 ---
 
+## EXP-2 — Intraday timesbasert reversal (GULL H1), netto etter spread
+
+**Status:** kjørt 2026-06-16 → **AVKREFTET**. Parameter-fri ⇒ hver måned er OOS.
+
+**Hypotese (H1).** Timesavkastning mean-reverterer (lag-1 autokorr < 0) → «fade forrige time»
+(`s_t = −sign(r_{t-1})`, hold 1 time). Ingen tunede parametre.
+
+**Nøyaktig oppsett (låst).** GULL H1 (9249 sammenhengende timesbarer, okt-2024→jun-2026; sesongbrudd
+>2t droppet). Kostnad: gull-spread ~1.5 bps round-trip (0.75 bps × turnover). Kjørt via
+`/tmp/intraday_check.py`-mønster.
+
+**Akseptkriterium (låst FØR resultat).** Netto-bps/bar positiv i >60 % av måneder OG totalt positiv.
+
+**Resultat.** Lag-1 autokorr **−0.0137** (reversal finnes, men bittelite). **Netto −0.53 bps/bar**,
+kun **7/21 måneder positive**, hit-rate 46–52 % (myntkast). → **IKKE BESTÅTT.**
+
+**Konklusjon/beslutning.** Mikro-reversal-effekten er REELL men **mindre enn spreaden** → ikke
+tradbar netto på Skilling-kostnad. Bygger IKKE intraday-produkt på dette. H1-fetch-infrastruktur
+beholdt (`ctrader_prices --period H1`). Høyere frekvens (M5/M1) har enda høyere spread-andel →
+usannsynlig bedre; ikke prioritert. **Lærdom:** intraday-edger eksisterer på papiret men dør i
+transaksjonskostnaden på likvide instrumenter — samme mønster som alt annet vi har testet.
+
 ## Mal for nye eksperimenter
 - **Hypotese (H1):** …
 - **Nøyaktig endring (låst):** …

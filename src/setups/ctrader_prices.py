@@ -83,9 +83,13 @@ def _now_ms() -> int:
 class CTraderPrices:
     """Henter D1-OHLC for et sett symboler i én reactor-kjøring."""
 
-    def __init__(self, symbols: Sequence[str], years: int = 15, host_kind: str = "demo") -> None:
+    def __init__(self, symbols: Sequence[str], years: int = 15, host_kind: str = "demo",
+                 period_name: str = "D1", chunk_days: int = 365) -> None:
         self.symbols = list(symbols)
         self.max_chunks = max(1, years)
+        self.period = ProtoOATrendbarPeriod.Value(period_name)
+        self.tf = period_name
+        self.chunk_days = chunk_days       # vindu pr request (mindre for intraday-cap)
         self.host_kind = host_kind
         host = (EndPoints.PROTOBUF_DEMO_HOST if host_kind == "demo"
                 else EndPoints.PROTOBUF_LIVE_HOST)
@@ -204,8 +208,8 @@ class CTraderPrices:
         req = ProtoOAGetTrendbarsReq()
         req.ctidTraderAccountId = self.account_id
         req.symbolId = sid
-        req.period = D1
-        req.fromTimestamp = self._to_ms - CHUNK_DAYS * MS_DAY
+        req.period = self.period
+        req.fromTimestamp = self._to_ms - self.chunk_days * MS_DAY
         req.toTimestamp = self._to_ms
         self._send(req)
 
@@ -215,7 +219,7 @@ class CTraderPrices:
         if bars:
             self.results[sym].extend(_trendbar_to_bar(tb) for tb in bars)
             self._chunk += 1
-            self._to_ms -= CHUNK_DAYS * MS_DAY
+            self._to_ms -= self.chunk_days * MS_DAY
             if self._chunk < self.max_chunks:
                 self._send_chunk()
                 return
@@ -248,9 +252,11 @@ def store_bars(conn, symbol: str, bars: Sequence[Bar], tf: str = "D1") -> int:
 
 
 def fetch_and_store(symbols: Sequence[str], years: int = 15, host_kind: str = "demo",
-                    db_path: Path | str = store.DEFAULT_DB_PATH) -> dict[str, int]:
-    """Hent D1-OHLC og persister. Returnerer radtelling pr symbol."""
-    fetcher = CTraderPrices(symbols, years=years, host_kind=host_kind)
+                    db_path: Path | str = store.DEFAULT_DB_PATH,
+                    period_name: str = "D1", chunk_days: int = 365) -> dict[str, int]:
+    """Hent OHLC for valgt periode og persister. Returnerer radtelling pr symbol."""
+    fetcher = CTraderPrices(symbols, years=years, host_kind=host_kind,
+                            period_name=period_name, chunk_days=chunk_days)
     results = fetcher.run()
     if fetcher.error and not any(results.values()):
         raise RuntimeError(f"cTrader-feil: {fetcher.error}")
@@ -258,20 +264,23 @@ def fetch_and_store(symbols: Sequence[str], years: int = 15, host_kind: str = "d
     with store.connect(db_path) as conn:
         store.init_db(conn)
         for sym, bars in results.items():
-            counts[sym] = store_bars(conn, sym, bars)
+            counts[sym] = store_bars(conn, sym, bars, tf=period_name)
     return counts
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Hent read-only D1-OHLC fra Skilling (cTrader).")
     ap.add_argument("symbols", nargs="+", help="Skilling-tickere, f.eks. GOLD EURUSD COFFEE")
-    ap.add_argument("--years", type=int, default=15)
+    ap.add_argument("--years", type=int, default=15, help="antall chunk-vinduer bakover")
     ap.add_argument("--host", choices=["demo", "live"], default="demo")
+    ap.add_argument("--period", default="D1", help="trendbar-periode (D1, H1, M30, …)")
+    ap.add_argument("--chunk-days", type=int, default=365, help="vindu pr request")
     ap.add_argument("--db", default=str(store.DEFAULT_DB_PATH))
     args = ap.parse_args()
 
-    counts = fetch_and_store(args.symbols, years=args.years, host_kind=args.host, db_path=args.db)
-    print("Hentet D1-OHLC:")
+    counts = fetch_and_store(args.symbols, years=args.years, host_kind=args.host,
+                             db_path=args.db, period_name=args.period, chunk_days=args.chunk_days)
+    print(f"Hentet {args.period}-OHLC:")
     for sym, n in counts.items():
         print(f"  {sym}: {n} barer")
 
