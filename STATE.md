@@ -2,8 +2,8 @@
 
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
-**Sist oppdatert:** 2026-06-16 (dealer-gamma wiret — flyt-data fra Deribit, akkumulerer framover)
-**Nåværende fase:** MVP live, **fordeling-først produkt**. **Neste: la gamma akkumulere → walk-forward når nok folder; bekreft EXP-1 forward-kvartal; rekalibrer swap; vurder intraday/ETF-gamma.**
+**Sist oppdatert:** 2026-06-16 (SqueezeMetrics SPX DIX/GEX hentet + validert — ingen 30d-edge, ikke vektet)
+**Nåværende fase:** MVP live, **fordeling-først produkt**. **Neste: GEX som vol-regime (SL/TP, ikke retning); bekreft EXP-1 forward-kvartal; rekalibrer swap; intraday er den gjenstående reelle edge-typen.**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
 ---
@@ -177,6 +177,20 @@ den som ble publisert. Fire avgrensede korrekthetsfikser (alle med tester, 61 gr
   live snapshot. **Akkumulerer framover** — må bestå walk-forward når nok folder finnes før vekt økes.
 - **Scope-beslutning (egen):** kun Deribit/krypto nå. yfinance/ETF-gamma (indeks/GLD/SLV/USO) er
   «skjør» (EOD-OI, BS selv) → utsatt til krypto-driveren har bevist seg.
+
+### KORRIGERING — SqueezeMetrics SPX (2026-06-16): hent, ikke lag; indeks, ikke krypto
+Krypto-valget var feil (teknisk enkelt, ikke verdifullt). Bedre kilde funnet: **SqueezeMetrics**
+publiserer gratis daglig CSV med SPX **GEX** (dealer-gamma ferdig beregnet) + **DIX** (dark-pool
+kjøpspress, retnings-flyt), **2011→ i dag**. `fetch/squeeze.py` → macro_series `SQZ_GEX`/`SQZ_DIX`
+(gjenbruker eksisterende drivere). Treffer alle tre innvendingene: indeks (betyr noe), hentet
+(ikke DIY), **historikk → validerbar**.
+- **VALIDERT (walk-forward, sp500, med vs uten DIX): INGEN OOS-edge.** Begge snitt 51 % fortegns-
+  treff (myntkast); DIX flytter enkeltfolder men netto null, nyere folder <50 %. → DIX **bevisst
+  IKKE vektet** i sp500 (data beholdt tilgjengelig). GEX hører til vol-regime (SL/TP), ikke retning.
+- **Lærdom:** selv hentet, validerbar, ekte-instrument FLYT-data slår ikke 30d-retning. Problemet er
+  horisonten/tesen, ikke datakilden. Dette er hvorfor validerings-disiplinen er verdt det — vi
+  testet en ny kilde og fikk et klart NEI i stedet for å gjette. Krypto-gamma deprioritert til fordel
+  for denne (validerbare) kilden; begge data beholdes, ingen får vekt uten påvist edge.
 
 ## HOVEDFUNN (ikke gjenta feilene)
 - **Fundamentale lineære scorer forutsier IKKE forward-avkastning** på 30–120d (kalibrering flat/invertert,

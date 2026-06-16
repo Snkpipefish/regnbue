@@ -24,6 +24,8 @@ echo "[update] henter vær (Open-Meteo) …"
 $PY -m setups.fetch.weather || echo "[update] vær-fetch feilet, fortsetter."
 echo "[update] henter dealer-gamma (Deribit BTC/ETH) …"
 $PY -m setups.fetch.gamma || echo "[update] gamma-fetch feilet, fortsetter."
+echo "[update] henter SPX dark-pool/gamma (SqueezeMetrics DIX/GEX) …"
+$PY -m setups.fetch.squeeze || echo "[update] SqueezeMetrics-fetch feilet, fortsetter."
 echo "[update] henter ferske priser (cTrader) …"
 $PY -m setups.ctrader_prices GOLD EURUSD Coffee --years 1 || echo "[update] pris-fetch feilet, fortsetter."
 

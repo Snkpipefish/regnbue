@@ -26,6 +26,10 @@ drivers:
   - name: cot_spec_net_percentile
     weight: 0.25
     params: {market: SP500, lookback_weeks: 156, bull_when: high}
+  # DIX/GEX (SqueezeMetrics dark-pool-flyt + dealer-gamma) HENTES av `fetch.squeeze` som
+  # SQZ_DIX/SQZ_GEX (2011→, validerbar). VALIDERT 2026-06-16: DIX-level gir INGEN OOS-edge på
+  # SPX (walk-forward 51% = myntkast, både med og uten) → bevisst IKKE vektet. Data beholdes
+  # tilgjengelig for regime/distribusjon + framtidige hypoteser (GEX som vol-regime, ikke retning).
 grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
 base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
             min_hit_rate_pct: 55, min_expectancy_r: 0.3}
