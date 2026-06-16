@@ -191,3 +191,12 @@ class ScoreContext:
         cutoff = (date.fromisoformat(self.as_of)
                   - timedelta(days=self.COT_RELEASE_LAG_DAYS)).isoformat()
         return rows[:bisect_right(rdates, cutoff)]
+
+    # --- dealer-gamma-snapshot (DATA_KARTLEGGING §3b) ---
+    def gamma(self, instrument: str) -> list[sqlite3.Row]:
+        """(date, spot, net_gex, gamma_center) stigende, kun t.o.m. as_of (look-ahead-trygt)."""
+        return self.conn.execute(
+            "SELECT date, spot, net_gex, gamma_center FROM gamma "
+            "WHERE instrument=? AND date<=? ORDER BY date",
+            (instrument, self.as_of),
+        ).fetchall()

@@ -527,6 +527,37 @@ def frost_anomaly(ctx: ScoreContext, params: dict) -> DriverResult:
                         f"{region} kaldeste natt {cur_min:.1f}°C (z={z:+.2f})", params)
 
 
+@register("gamma_regime")
+def gamma_regime(ctx: ScoreContext, params: dict) -> DriverResult:
+    """Dealer-gamma-regime (DATA_KARTLEGGING §3b): pin mot gamma-magnet i vol-dempende regime.
+
+    Positiv netto-GEX = dealere demper vol → pris trekkes mot den gamma-vektede «magneten»
+    (mean-reversion): magnet over spot = mild bullish pull, under = bearish. Negativ GEX =
+    forsterkende regime → ingen pin → score 0 (vi fabrikkerer ikke retning). Ferskhets-gate
+    hindrer at et gammelt snapshot bidrar. NB: ingen gratis OI-historikk → akkumuleres framover
+    og kan IKKE valideres historisk ennå; lav vekt til walk-forward har nok folder.
+    """
+    inst = params["instrument"]
+    rows = ctx.gamma(inst)
+    if not rows:
+        return _miss("gamma_regime", inst, params)
+    r = rows[-1]
+    age = (date.fromisoformat(ctx.as_of) - date.fromisoformat(r["date"])).days
+    if age > params.get("max_age_days", 5):
+        return _miss("gamma_regime", f"snapshot {age}d gammelt", params)
+    spot, net_gex, center = r["spot"], r["net_gex"], r["gamma_center"]
+    if not spot or spot <= 0 or center is None:
+        return _miss("gamma_regime", "ufullstendig snapshot", params)
+    if net_gex is None or net_gex <= 0:
+        return DriverResult("gamma_regime", True, 0.0, round(net_gex or 0.0, 2),
+                            f"{inst} short-gamma (forsterkende) → ingen pin", params)
+    gap = (center - spot) / spot
+    score = math.tanh(params.get("k", 8.0) * gap)
+    return DriverResult("gamma_regime", True, round(score, 4), round(net_gex, 2),
+                        f"{inst} long-gamma pin {center:.0f} vs spot {spot:.0f} ({gap*100:+.1f}%)",
+                        params)
+
+
 @register("series_ratio")
 def series_ratio(ctx: ScoreContext, params: dict) -> DriverResult:
     """Z-skåret forhold mellom to dype serier (teller/nevner), forward-fylt på felles datoer.

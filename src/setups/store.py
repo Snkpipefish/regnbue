@@ -82,6 +82,18 @@ CREATE TABLE IF NOT EXISTS etf_holdings (
     PRIMARY KEY (ticker, date)
 );
 
+-- Dealer-gamma-snapshot (DATA_KARTLEGGING §3b). EOD-snapshot pr instrument; ingen gratis
+-- historikk → akkumuleres framover (kan ikke backfylles). net_gex>0 = vol-dempende regime;
+-- gamma_center = gamma-vektet "pin"-nivå (magnet). Kun instrumenter med gratis opsjoner.
+CREATE TABLE IF NOT EXISTS gamma (
+    instrument   TEXT NOT NULL,   -- btc | eth (driverens param)
+    date         TEXT NOT NULL,   -- ISO snapshot-dag
+    spot         REAL,
+    net_gex      REAL,
+    gamma_center REAL,
+    PRIMARY KEY (instrument, date)
+);
+
 -- Sporing av engangs-seed (idempotens + revisjon).
 CREATE TABLE IF NOT EXISTS seed_log (
     source_table  TEXT NOT NULL,

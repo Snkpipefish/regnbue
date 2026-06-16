@@ -190,9 +190,14 @@ Tre kilder vurdert ærlig mot hva vi får gratis:
 | **Dealer gamma (GEX)** | ✅ **Implementerbart** (utvalgte instrumenter) | Positive gamma-nivåer = faktiske S/R. Passer setup-generatoren som ny nivåtype. |
 
 ### Dealer gamma — hva vi får gratis (verifisert 2026-05-29)
+> **WIRET 2026-06-16 (BTC/ETH):** `fetch/gamma.py` henter `get_book_summary_by_currency` (OI+IV+spot
+> pr kontrakt), regner DIY-BS-gamma → netto-GEX + gamma-vektet pin, lagrer EOD-snapshot i `gamma`-
+> tabellen. Driver `gamma_regime` på btcusd/ethusd (vekt 0.10). **NB: ingen gratis OI-historikk →
+> akkumulerer framover, kan ikke valideres historisk ennå.** yfinance/ETF-gamma utsatt (skjør).
+
 | Instrument | Kilde | Tilgang | Kvalitet |
 |---|---|---|---|
-| **BTC / ETH** | Deribit public API | **GRATIS** ingen auth — `/public/ticker` gir **gamma + OI + greeks** per kontrakt, `/public/get_book_summary_by_currency`, DVOL-indeks. Sanntid. | Ren — gamma servert ferdig, ingen Black-Scholes nødvendig |
+| **BTC / ETH** ✅ wiret | Deribit public API | **GRATIS** ingen auth — `/public/ticker` gir **gamma + OI + greeks** per kontrakt, `/public/get_book_summary_by_currency`, DVOL-indeks. Sanntid. | Ren — gamma servert ferdig, ingen Black-Scholes nødvendig |
 | **S&P/indeks, Gull (GLD), Sølv (SLV), Olje (USO)** | yfinance/yahooquery + Nasdaq opsjonskjeder | **GRATIS** (~15 min forsinket, OI+IV, ingen greeks → regn BS-gamma selv) | Brukbar men skjør; EOD-OI begrenser intradag |
 | **SPX gamma-nivåer (ferdig)** | Menthor Q gratis dagsrapport | **GRATIS-TIER** | Sanity-check/fallback, kun SPX/indeks |
 | FX-par, kaffe/sukker/korn | — | ingen gratis listede opsjoner | ikke i fingerprint |

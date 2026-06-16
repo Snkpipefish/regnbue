@@ -21,6 +21,12 @@ drivers:
   - name: cot_spec_net_percentile
     weight: 0.40
     params: {market: BTCUSD, lookback_weeks: 156, bull_when: high}
+  # Dealer-gamma-pin (Deribit, §3b). PROVISORISK lav vekt: ingen gratis OI-historikk →
+  # renormaliserer ut av historisk base-rate, bidrar bare på live snapshot. Må bestå
+  # walk-forward (når nok folder akkumulert) før vekt økes.
+  - name: gamma_regime
+    weight: 0.10
+    params: {instrument: btc, max_age_days: 5}
 grade_thresholds: {A_plus: 0.55, A: 0.40, B: 0.25}
 base_rate: {horizon_days: 30, band: 0.10, min_effective_n: 30,
             min_hit_rate_pct: 55, min_expectancy_r: 0.3}

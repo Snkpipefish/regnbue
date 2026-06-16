@@ -2,8 +2,8 @@
 
 > Oppdater denne ved slutten av hver økt. Et nytt kontekstvindu leser denne rett etter `CLAUDE.md`.
 
-**Sist oppdatert:** 2026-06-16 (fordeling-først UI + walk-forward-validering + data-kvalitetsflagg)
-**Nåværende fase:** MVP live, **fordeling-først produkt**. **Neste: bekreft EXP-1 forward-kvartal; rekalibrer swap mot live Skilling; vurder intraday-produkt (egen beslutning).**
+**Sist oppdatert:** 2026-06-16 (dealer-gamma wiret — flyt-data fra Deribit, akkumulerer framover)
+**Nåværende fase:** MVP live, **fordeling-først produkt**. **Neste: la gamma akkumulere → walk-forward når nok folder; bekreft EXP-1 forward-kvartal; rekalibrer swap; vurder intraday/ETF-gamma.**
 **Live:** https://snkpipefish.github.io/regnbue/ · repo: github.com/Snkpipefish/regnbue (konto Snkpipefish)
 
 ---
@@ -83,7 +83,7 @@ ingen setup uten statistisk støtte.
 ### Gjenbrukbare drivere (registrert i `score/drivers.py`)
 `level_percentile`, `momentum`, `price_momentum`, `series_spread_percentile`, `price_vs_sma`,
 `cot_spec_net_percentile`, `ethanol_parity`, `series_ratio`, `rainfall_anomaly`, `etf_flow`, `frost_anomaly`,
-`price_ratio`, `seasonal_anomaly`, `degree_days_anomaly`. Lag nye ved behov med `@register`.
+`price_ratio`, `seasonal_anomaly`, `degree_days_anomaly`, `gamma_regime`. Lag nye ved behov med `@register`.
 
 ---
 
@@ -162,6 +162,21 @@ den som ble publisert. Fire avgrensede korrekthetsfikser (alle med tester, 61 gr
   kvartalsvis (~4 pkt/år) → kan ikke være en meningsfull daglig driver (ville lagt til støy, brutt
   egen «valider før du stoler»-regel). Gulls validerte drivere (realrente + ETF-flyt) er alt godt
   matet. Bred datainnsamling frarådes; ekstra edge ligger trolig på intraday (eget produkt, utsatt).
+
+### Dealer-gamma wiret (2026-06-16) — flyt-data, ny edge-TYPE
+- **Hvorfor:** mer fundamental-data hjelper ikke (tese-problem, ikke mengde). Gamma er *flyt/
+  markedsstruktur*, ikke makro — en genuint annen edge-type med korthorisonts-effekter (§3b).
+- **`fetch/gamma.py`:** Deribit BTC/ETH (gratis, ingen auth). Ett kall → OI+IV+spot pr kontrakt;
+  DIY Black-Scholes-gamma → netto-GEX (SqueezeMetrics-konvensjon) + gamma-vektet pin. EOD-snapshot
+  i ny `gamma`-tabell. Wiret i `update.sh`. Live-verifisert (btc/eth long-gamma, pin over spot).
+- **`gamma_regime`-driver:** pin/mean-reversion — magnet over spot = mild bullish i vol-dempende
+  regime; short-gamma → 0 (fabrikkerer ikke retning); ferskhets-gate (`max_age_days`). På btcusd/
+  ethusd med **lav vekt 0.10**.
+- **ÆRLIG BEGRENSNING:** ingen gratis OI-historikk → kan IKKE backfylles/valideres historisk.
+  Renormaliserer ut av den historiske base-raten (look-ahead-trygt: `date<=as_of`), bidrar bare på
+  live snapshot. **Akkumulerer framover** — må bestå walk-forward når nok folder finnes før vekt økes.
+- **Scope-beslutning (egen):** kun Deribit/krypto nå. yfinance/ETF-gamma (indeks/GLD/SLV/USO) er
+  «skjør» (EOD-OI, BS selv) → utsatt til krypto-driveren har bevist seg.
 
 ## HOVEDFUNN (ikke gjenta feilene)
 - **Fundamentale lineære scorer forutsier IKKE forward-avkastning** på 30–120d (kalibrering flat/invertert,
