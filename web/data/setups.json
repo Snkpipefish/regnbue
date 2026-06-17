@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated": "2026-06-17T05:14:59Z",
+  "generated": "2026-06-17T19:07:43Z",
   "as_of": "2026-06-16",
   "signals": [
     {
@@ -1497,49 +1497,49 @@
       "ticker": "OIL BRENT",
       "direction": "LONG",
       "grade": "NONE",
-      "score": 0.0184,
+      "score": 0.0354,
       "published": false,
-      "entry": 84.4,
-      "sl": 79.761786,
+      "entry": 80.0,
+      "sl": 68.463929,
       "tp": 102.08,
-      "rr": 3.812,
-      "atr": 4.592857,
-      "reject_reason": "ingen grade (for svakt signal); base-rate: for få uavhengige analoger (n_eff=19 < 30; n=25); hit-rate nedre CI 4% < 55%; expectancy -0.28R < 0.30R; expectancy CI inkluderer ≤0 (-1.02R)",
+      "rr": 1.914,
+      "atr": 4.624286,
+      "reject_reason": "ingen grade (for svakt signal); base-rate: for få uavhengige analoger (n_eff=20 < 30; n=31); hit-rate nedre CI 10% < 55%; expectancy +0.05R < 0.30R; expectancy CI inkluderer ≤0 (-0.51R)",
       "base_rate": {
-        "n": 25,
-        "hit_rate": 0.12,
+        "n": 31,
+        "hit_rate": 0.2258,
         "hit_rate_ci": [
-          0.0361,
-          0.3317
+          0.0964,
+          0.4435
         ],
-        "expectancy_r": -0.2757,
+        "expectancy_r": 0.046,
         "expectancy_ci": [
-          -1.0169,
-          0.4655
+          -0.5081,
+          0.6001
         ],
         "passes": false,
-        "reason": "for få uavhengige analoger (n_eff=19 < 30; n=25); hit-rate nedre CI 4% < 55%; expectancy -0.28R < 0.30R; expectancy CI inkluderer ≤0 (-1.02R)",
-        "n_eff": 19
+        "reason": "for få uavhengige analoger (n_eff=20 < 30; n=31); hit-rate nedre CI 10% < 55%; expectancy +0.05R < 0.30R; expectancy CI inkluderer ≤0 (-0.51R)",
+        "n_eff": 20
       },
       "scenario": {
         "engine": "scenario",
         "n_paths": 2000,
-        "prob_tp": 0.199,
-        "prob_sl": 0.681,
-        "prob_time": 0.12,
-        "expectancy_r": 0.1988,
+        "prob_tp": 0.156,
+        "prob_sl": 0.395,
+        "prob_time": 0.449,
+        "expectancy_r": 0.0354,
         "expectancy_ci": [
-          0.1127,
-          0.285
+          -0.0131,
+          0.0839
         ],
         "horizon": 30,
         "cone": {
-          "p05": -0.2991,
-          "p25": -0.1344,
-          "median": -0.0158,
-          "p75": 0.1191,
-          "p95": 0.3287,
-          "prob_up": 0.47
+          "p05": -0.2963,
+          "p25": -0.1374,
+          "median": -0.0041,
+          "p75": 0.1312,
+          "p95": 0.3428,
+          "prob_up": 0.492
         }
       },
       "data_quality": "ok",
@@ -1548,8 +1548,8 @@
         {
           "name": "seasonal_anomaly",
           "ok": true,
-          "score": 0.7956,
-          "detail": "WCESTUS1 vs sesong z=-1.09"
+          "score": 0.8442,
+          "detail": "WCESTUS1 vs sesong z=-1.24"
         },
         {
           "name": "cot_spec_net_percentile",
