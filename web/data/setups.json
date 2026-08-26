@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated": "2026-08-26T05:01:13Z",
+  "generated": "2026-08-26T05:15:50Z",
   "as_of": "2026-08-24",
   "signals": [
     {
@@ -1029,28 +1029,28 @@
       "ticker": "GOLD",
       "direction": "SHORT",
       "grade": "NONE",
-      "score": -0.153,
+      "score": -0.143,
       "published": false,
       "entry": 4658.43,
       "sl": 4798.521429,
       "tp": 4536.64,
       "rr": 0.869,
       "atr": 100.885714,
-      "reject_reason": "ingen grade (for svakt signal); R:R 0.87 < 1.5; base-rate: hit-rate nedre CI 33% < 55%; expectancy -0.12R < 0.30R; expectancy CI inkluderer ≤0 (-0.40R)",
+      "reject_reason": "ingen grade (for svakt signal); R:R 0.87 < 1.5; base-rate: hit-rate nedre CI 31% < 55%; expectancy -0.15R < 0.30R; expectancy CI inkluderer ≤0 (-0.44R)",
       "base_rate": {
-        "n": 63,
-        "hit_rate": 0.4762,
+        "n": 68,
+        "hit_rate": 0.4559,
         "hit_rate_ci": [
-          0.332,
-          0.6244
+          0.3138,
+          0.6055
         ],
-        "expectancy_r": -0.1151,
+        "expectancy_r": -0.1533,
         "expectancy_ci": [
-          -0.4031,
-          0.1729
+          -0.4404,
+          0.1338
         ],
         "passes": false,
-        "reason": "hit-rate nedre CI 33% < 55%; expectancy -0.12R < 0.30R; expectancy CI inkluderer ≤0 (-0.40R)",
+        "reason": "hit-rate nedre CI 31% < 55%; expectancy -0.15R < 0.30R; expectancy CI inkluderer ≤0 (-0.44R)",
         "n_eff": 41
       },
       "scenario": {
@@ -1080,8 +1080,8 @@
         {
           "name": "series_spread_percentile",
           "ok": true,
-          "score": -0.9072,
-          "detail": "DGS10-T10YIE = +2.4 (p95)"
+          "score": -0.8786,
+          "detail": "DGS10-T10YIE = +2.38 (p94)"
         },
         {
           "name": "momentum",
@@ -1183,85 +1183,6 @@
       ]
     },
     {
-      "instrument": "EURUSD",
-      "ticker": "EURUSD",
-      "direction": "SHORT",
-      "grade": "NONE",
-      "score": -0.0617,
-      "published": false,
-      "entry": 1.16726,
-      "sl": 1.169627,
-      "tp": 1.16546,
-      "rr": 0.761,
-      "atr": 0.004427,
-      "reject_reason": "ingen grade (for svakt signal); R:R 0.76 < 1.5; base-rate: hit-rate nedre CI 42% < 55%; expectancy +0.00R < 0.30R; expectancy CI inkluderer ≤0 (-0.26R)",
-      "base_rate": {
-        "n": 68,
-        "hit_rate": 0.5735,
-        "hit_rate_ci": [
-          0.4223,
-          0.7121
-        ],
-        "expectancy_r": 0.0045,
-        "expectancy_ci": [
-          -0.264,
-          0.273
-        ],
-        "passes": false,
-        "reason": "hit-rate nedre CI 42% < 55%; expectancy +0.00R < 0.30R; expectancy CI inkluderer ≤0 (-0.26R)",
-        "n_eff": 41
-      },
-      "scenario": {
-        "engine": "scenario",
-        "n_paths": 2000,
-        "prob_tp": 0.5305,
-        "prob_sl": 0.4695,
-        "prob_time": 0.0,
-        "expectancy_r": -0.0792,
-        "expectancy_ci": [
-          -0.1177,
-          -0.0406
-        ],
-        "horizon": 30,
-        "cone": {
-          "p05": -0.0287,
-          "p25": -0.0134,
-          "median": -0.0016,
-          "p75": 0.0099,
-          "p95": 0.0254,
-          "prob_up": 0.467
-        }
-      },
-      "data_quality": "ok",
-      "history_years": 15.2,
-      "drivers": [
-        {
-          "name": "series_spread_percentile",
-          "ok": true,
-          "score": -0.6696,
-          "detail": "DGS10-IRLTLT01DEM156N = +1.77 (p83)"
-        },
-        {
-          "name": "momentum",
-          "ok": true,
-          "score": 0.2809,
-          "detail": "DGS2 21d-endring -0.13 (z=-0.29)"
-        },
-        {
-          "name": "cot_spec_net_percentile",
-          "ok": true,
-          "score": -0.141,
-          "detail": "EURUSD spec-net p43"
-        },
-        {
-          "name": "level_percentile",
-          "ok": true,
-          "score": 0.6531,
-          "detail": "VIXCLS nivå 15.7 = p17"
-        }
-      ]
-    },
-    {
       "instrument": "SP500",
       "ticker": "SPX500",
       "direction": "SHORT",
@@ -1337,6 +1258,85 @@
           "ok": true,
           "score": -0.8333,
           "detail": "SP500 spec-net p8"
+        }
+      ]
+    },
+    {
+      "instrument": "EURUSD",
+      "ticker": "EURUSD",
+      "direction": "SHORT",
+      "grade": "NONE",
+      "score": -0.0526,
+      "published": false,
+      "entry": 1.16726,
+      "sl": 1.169627,
+      "tp": 1.16546,
+      "rr": 0.761,
+      "atr": 0.004427,
+      "reject_reason": "ingen grade (for svakt signal); R:R 0.76 < 1.5; base-rate: hit-rate nedre CI 41% < 55%; expectancy -0.01R < 0.30R; expectancy CI inkluderer ≤0 (-0.28R)",
+      "base_rate": {
+        "n": 62,
+        "hit_rate": 0.5645,
+        "hit_rate_ci": [
+          0.412,
+          0.7057
+        ],
+        "expectancy_r": -0.0114,
+        "expectancy_ci": [
+          -0.2841,
+          0.2614
+        ],
+        "passes": false,
+        "reason": "hit-rate nedre CI 41% < 55%; expectancy -0.01R < 0.30R; expectancy CI inkluderer ≤0 (-0.28R)",
+        "n_eff": 40
+      },
+      "scenario": {
+        "engine": "scenario",
+        "n_paths": 2000,
+        "prob_tp": 0.5305,
+        "prob_sl": 0.4695,
+        "prob_time": 0.0,
+        "expectancy_r": -0.0792,
+        "expectancy_ci": [
+          -0.1177,
+          -0.0406
+        ],
+        "horizon": 30,
+        "cone": {
+          "p05": -0.0287,
+          "p25": -0.0134,
+          "median": -0.0016,
+          "p75": 0.0099,
+          "p95": 0.0254,
+          "prob_up": 0.467
+        }
+      },
+      "data_quality": "ok",
+      "history_years": 15.2,
+      "drivers": [
+        {
+          "name": "series_spread_percentile",
+          "ok": true,
+          "score": -0.5838,
+          "detail": "DGS10-IRLTLT01DEM156N = +1.73 (p79)"
+        },
+        {
+          "name": "momentum",
+          "ok": true,
+          "score": 0.1972,
+          "detail": "DGS2 21d-endring -0.09 (z=-0.20)"
+        },
+        {
+          "name": "cot_spec_net_percentile",
+          "ok": true,
+          "score": -0.141,
+          "detail": "EURUSD spec-net p43"
+        },
+        {
+          "name": "level_percentile",
+          "ok": true,
+          "score": 0.6531,
+          "detail": "VIXCLS nivå 15.7 = p17"
         }
       ]
     },
