@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated": "2026-08-25T17:16:06Z",
-  "as_of": "2026-08-23",
+  "generated": "2026-08-26T05:01:13Z",
+  "as_of": "2026-08-24",
   "signals": [
     {
       "instrument": "NatGas",
@@ -399,12 +399,12 @@
       "grade": "B",
       "score": -0.3891,
       "published": false,
-      "entry": 363.13,
-      "sl": 371.347857,
-      "tp": 356.47,
-      "rr": 0.81,
-      "atr": 13.431429,
-      "reject_reason": "R:R 0.81 < 1.5; base-rate: for få uavhengige analoger (n_eff=8 < 30; n=12); hit-rate nedre CI 27% < 55%; expectancy +0.05R < 0.30R; expectancy CI inkluderer ≤0 (-0.60R)",
+      "entry": 355.69,
+      "sl": 365.675,
+      "tp": 349.96,
+      "rr": 0.574,
+      "atr": 13.98,
+      "reject_reason": "R:R 0.57 < 1.5; base-rate: for få uavhengige analoger (n_eff=8 < 30; n=12); hit-rate nedre CI 27% < 55%; expectancy -0.09R < 0.30R; expectancy CI inkluderer ≤0 (-0.65R)",
       "base_rate": {
         "n": 12,
         "hit_rate": 0.5833,
@@ -412,34 +412,34 @@
           0.2742,
           0.8384
         ],
-        "expectancy_r": 0.0488,
+        "expectancy_r": -0.0878,
         "expectancy_ci": [
-          -0.5971,
-          0.6948
+          -0.6496,
+          0.4739
         ],
         "passes": false,
-        "reason": "for få uavhengige analoger (n_eff=8 < 30; n=12); hit-rate nedre CI 27% < 55%; expectancy +0.05R < 0.30R; expectancy CI inkluderer ≤0 (-0.60R)",
+        "reason": "for få uavhengige analoger (n_eff=8 < 30; n=12); hit-rate nedre CI 27% < 55%; expectancy -0.09R < 0.30R; expectancy CI inkluderer ≤0 (-0.65R)",
         "n_eff": 8
       },
       "scenario": {
         "engine": "scenario",
         "n_paths": 2000,
-        "prob_tp": 0.498,
-        "prob_sl": 0.502,
+        "prob_tp": 0.56,
+        "prob_sl": 0.44,
         "prob_time": 0.0,
-        "expectancy_r": -0.1063,
+        "expectancy_r": -0.125,
         "expectancy_ci": [
-          -0.146,
-          -0.0666
+          -0.1592,
+          -0.0907
         ],
         "horizon": 30,
         "cone": {
-          "p05": -0.1873,
-          "p25": -0.0702,
-          "median": 0.0298,
-          "p75": 0.1501,
-          "p95": 0.3408,
-          "prob_up": 0.572
+          "p05": -0.2122,
+          "p25": -0.0813,
+          "median": 0.027,
+          "p75": 0.1509,
+          "p95": 0.3725,
+          "prob_up": 0.563
         }
       },
       "data_quality": "kort_historikk",
@@ -1031,47 +1031,47 @@
       "grade": "NONE",
       "score": -0.153,
       "published": false,
-      "entry": 4651.39,
-      "sl": 4800.5025,
+      "entry": 4658.43,
+      "sl": 4798.521429,
       "tp": 4536.64,
-      "rr": 0.77,
-      "atr": 108.81,
-      "reject_reason": "ingen grade (for svakt signal); R:R 0.77 < 1.5; base-rate: hit-rate nedre CI 35% < 55%; expectancy -0.13R < 0.30R; expectancy CI inkluderer ≤0 (-0.41R)",
+      "rr": 0.869,
+      "atr": 100.885714,
+      "reject_reason": "ingen grade (for svakt signal); R:R 0.87 < 1.5; base-rate: hit-rate nedre CI 33% < 55%; expectancy -0.12R < 0.30R; expectancy CI inkluderer ≤0 (-0.40R)",
       "base_rate": {
         "n": 63,
-        "hit_rate": 0.4921,
+        "hit_rate": 0.4762,
         "hit_rate_ci": [
-          0.3464,
-          0.6391
+          0.332,
+          0.6244
         ],
-        "expectancy_r": -0.134,
+        "expectancy_r": -0.1151,
         "expectancy_ci": [
-          -0.407,
-          0.139
+          -0.4031,
+          0.1729
         ],
         "passes": false,
-        "reason": "hit-rate nedre CI 35% < 55%; expectancy -0.13R < 0.30R; expectancy CI inkluderer ≤0 (-0.41R)",
+        "reason": "hit-rate nedre CI 33% < 55%; expectancy -0.12R < 0.30R; expectancy CI inkluderer ≤0 (-0.40R)",
         "n_eff": 41
       },
       "scenario": {
         "engine": "scenario",
         "n_paths": 2000,
-        "prob_tp": 0.4965,
-        "prob_sl": 0.5,
-        "prob_time": 0.0035,
-        "expectancy_r": -0.1215,
+        "prob_tp": 0.445,
+        "prob_sl": 0.553,
+        "prob_time": 0.002,
+        "expectancy_r": -0.1699,
         "expectancy_ci": [
-          -0.1603,
-          -0.0828
+          -0.2106,
+          -0.1291
         ],
         "horizon": 30,
         "cone": {
-          "p05": -0.1475,
-          "p25": -0.0523,
-          "median": 0.0156,
-          "p75": 0.0925,
-          "p95": 0.2127,
-          "prob_up": 0.571
+          "p05": -0.1376,
+          "p25": -0.0474,
+          "median": 0.0169,
+          "p75": 0.0908,
+          "p95": 0.2017,
+          "prob_up": 0.573
         }
       },
       "data_quality": "ok",
@@ -1189,47 +1189,47 @@
       "grade": "NONE",
       "score": -0.0617,
       "published": false,
-      "entry": 1.16624,
-      "sl": 1.168469,
-      "tp": 1.16174,
-      "rr": 2.019,
-      "atr": 0.004459,
-      "reject_reason": "ingen grade (for svakt signal); base-rate: hit-rate nedre CI 20% < 55%; expectancy -0.03R < 0.30R; expectancy CI inkluderer ≤0 (-0.47R)",
+      "entry": 1.16726,
+      "sl": 1.169627,
+      "tp": 1.16546,
+      "rr": 0.761,
+      "atr": 0.004427,
+      "reject_reason": "ingen grade (for svakt signal); R:R 0.76 < 1.5; base-rate: hit-rate nedre CI 42% < 55%; expectancy +0.00R < 0.30R; expectancy CI inkluderer ≤0 (-0.26R)",
       "base_rate": {
         "n": 68,
-        "hit_rate": 0.3235,
+        "hit_rate": 0.5735,
         "hit_rate_ci": [
-          0.2009,
-          0.4764
+          0.4223,
+          0.7121
         ],
-        "expectancy_r": -0.0327,
+        "expectancy_r": 0.0045,
         "expectancy_ci": [
-          -0.4675,
-          0.4021
+          -0.264,
+          0.273
         ],
         "passes": false,
-        "reason": "hit-rate nedre CI 20% < 55%; expectancy -0.03R < 0.30R; expectancy CI inkluderer ≤0 (-0.47R)",
+        "reason": "hit-rate nedre CI 42% < 55%; expectancy +0.00R < 0.30R; expectancy CI inkluderer ≤0 (-0.26R)",
         "n_eff": 41
       },
       "scenario": {
         "engine": "scenario",
         "n_paths": 2000,
-        "prob_tp": 0.403,
-        "prob_sl": 0.597,
+        "prob_tp": 0.5305,
+        "prob_sl": 0.4695,
         "prob_time": 0.0,
-        "expectancy_r": 0.1966,
+        "expectancy_r": -0.0792,
         "expectancy_ci": [
-          0.1318,
-          0.2615
+          -0.1177,
+          -0.0406
         ],
         "horizon": 30,
         "cone": {
-          "p05": -0.0296,
-          "p25": -0.0132,
-          "median": -0.0018,
-          "p75": 0.0098,
-          "p95": 0.0275,
-          "prob_up": 0.458
+          "p05": -0.0287,
+          "p25": -0.0134,
+          "median": -0.0016,
+          "p75": 0.0099,
+          "p95": 0.0254,
+          "prob_up": 0.467
         }
       },
       "data_quality": "ok",
